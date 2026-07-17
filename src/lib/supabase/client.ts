@@ -5,7 +5,7 @@ export function createSupabaseBrowserClient() {
   const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
   if (!supabaseUrl || !supabaseAnonKey) {
-    throw new Error("Missing public Supabase environment variables.");
+    return null;
   }
 
   return createClient(supabaseUrl, supabaseAnonKey);

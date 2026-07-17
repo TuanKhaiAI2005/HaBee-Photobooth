@@ -7,3 +7,103 @@ datasource db {
   url       = env("DATABASE_URL")
   directUrl = env("DIRECT_URL")
 }
+
+enum AccountRole {
+  ADMIN
+  STAFF
+}
+
+enum RoomStatus {
+  ACTIVE
+  PAUSED
+  MAINTENANCE
+  INACTIVE
+}
+
+enum QueueTicketStatus {
+  WAITING
+  CALLED
+  IN_SERVICE
+  COMPLETED
+  CANCELLED
+  NO_SHOW
+}
+
+model Account {
+  id           String      @id @default(uuid()) @db.Uuid
+  username     String?     @unique
+  employeeUid  String?     @unique
+  fullName     String
+  passwordHash String
+  role         AccountRole
+  isActive     Boolean     @default(true)
+  lastLoginAt  DateTime?
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+
+  @@index([role])
+  @@index([isActive])
+  @@index([createdAt])
+}
+
+model Room {
+  id                     String        @id @default(uuid()) @db.Uuid
+  name                   String
+  publicToken            String        @unique
+  color                  String
+  defaultDurationMinutes Int
+  status                 RoomStatus    @default(ACTIVE)
+  sortOrder              Int           @default(0)
+  createdAt              DateTime      @default(now())
+  updatedAt              DateTime      @updatedAt
+  queueEvents            QueueEvent[]
+  queueTickets           QueueTicket[]
+
+  @@index([status])
+  @@index([sortOrder])
+  @@index([createdAt])
+}
+
+model QueueTicket {
+  id                      String            @id @default(uuid()) @db.Uuid
+  ticketCode              String            @unique
+  roomId                  String            @db.Uuid
+  customerName            String
+  normalizedPhone         String
+  customerAccessTokenHash String            @unique
+  status                  QueueTicketStatus @default(WAITING)
+  queuePosition           Int
+  registeredAt            DateTime          @default(now())
+  calledAt                DateTime?
+  serviceStartedAt        DateTime?
+  expectedEndAt           DateTime?
+  checkoutAt              DateTime?
+  cancelledAt             DateTime?
+  createdAt               DateTime          @default(now())
+  updatedAt               DateTime          @updatedAt
+  room                    Room              @relation(fields: [roomId], references: [id], onDelete: Restrict)
+  queueEvents             QueueEvent[]
+
+  @@index([roomId])
+  @@index([status])
+  @@index([queuePosition])
+  @@index([normalizedPhone])
+  @@index([createdAt])
+  @@index([roomId, status, queuePosition])
+  @@unique([roomId, queuePosition])
+}
+
+model QueueEvent {
+  id        String       @id @default(uuid()) @db.Uuid
+  roomId    String       @db.Uuid
+  ticketId  String?      @db.Uuid
+  eventType String
+  createdAt DateTime     @default(now())
+  room      Room         @relation(fields: [roomId], references: [id], onDelete: Restrict)
+  ticket    QueueTicket? @relation(fields: [ticketId], references: [id], onDelete: SetNull)
+
+  @@index([roomId])
+  @@index([ticketId])
+  @@index([eventType])
+  @@index([createdAt])
+}

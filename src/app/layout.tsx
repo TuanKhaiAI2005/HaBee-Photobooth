@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Photobooth Queue",
-  description: "Nền móng quản lý hàng đợi photobooth.",
+  title: "HaBee Photobooth",
+  description: "Ung dung quan ly hang doi cute pastel cho HaBee Photobooth.",
 };
 
 export default function RootLayout({

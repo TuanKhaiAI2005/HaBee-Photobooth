@@ -1,9 +1,20 @@
+export function maskName(name: string): string {
+  const parts = name.trim().split(/\s+/).filter(Boolean);
+
+  if (parts.length <= 1) {
+    return parts[0] ?? "";
+  }
+
+  return [...parts.slice(0, -1).map(() => "****"), parts.at(-1)].join(" ");
+}
+
 export function maskPhone(phone: string): string {
-  const digits = phone.replace(/\D/g, "");
+  const compact = phone.trim().replace(/[\s.-]/g, "");
+  const digits = compact.replace(/\D/g, "");
 
   if (digits.length <= 4) {
     return "*".repeat(digits.length);
   }
 
-  return `${digits.slice(0, 3)}${"*".repeat(digits.length - 5)}${digits.slice(-2)}`;
+  return `${"*".repeat(compact.length - 4)}${digits.slice(-4)}`;
 }
