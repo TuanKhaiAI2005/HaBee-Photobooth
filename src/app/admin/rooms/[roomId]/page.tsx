@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { requireAdmin } from "@/lib/auth/guards";
 import { AdminNav } from "@/app/admin/admin-nav";
+import { QueueRealtimeRefetch } from "@/app/components/queue-realtime-refetch";
 import { createQrPngDataUrl, getRoomPublicUrl } from "@/lib/public/qr";
 import { getRoomTodayHistory } from "@/lib/admin/history";
 import { formatVietnamDateTime } from "@/lib/timezone";
@@ -29,6 +30,7 @@ export default async function AdminRoomQrPage({ params }: AdminRoomQrPageProps) 
 
   return (
     <main className="mx-auto grid min-h-screen max-w-4xl gap-6 px-6 py-8">
+      <QueueRealtimeRefetch roomId={room.id} />
       <AdminNav />
       <section className="rounded border border-[var(--color-border)] bg-[var(--color-surface)] p-6">
         <p className="text-sm font-semibold uppercase text-[var(--color-muted-text)]">QR phòng</p>

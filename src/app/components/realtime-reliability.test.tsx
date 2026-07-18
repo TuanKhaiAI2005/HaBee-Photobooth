@@ -269,7 +269,7 @@ describe("QueueConnectionIndicator realtime reliability", () => {
     await view.unmount();
   });
 
-  it("coalesces multiple QueueEvent inserts within 350ms into one refetch", async () => {
+  it("coalesces multiple QueueEvent inserts within 200ms into one refetch", async () => {
     const supabase = createFakeSupabase();
     mocks.createSupabaseBrowserClient.mockReturnValue(supabase);
     const view = await render(<QueueConnectionIndicator fallbackMs={1_000} roomId="room-1" />);
@@ -279,7 +279,7 @@ describe("QueueConnectionIndicator realtime reliability", () => {
       supabase.emitQueueEvent();
       supabase.emitQueueEvent();
     });
-    await flushTimers(349);
+    await flushTimers(199);
     expect(mocks.refresh).not.toHaveBeenCalled();
     await flushTimers(1);
 

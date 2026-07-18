@@ -16,7 +16,7 @@ type QueueConnectionIndicatorProps = {
 
 const DEFAULT_FALLBACK_MS = 10_000;
 const CUSTOMER_FALLBACK_MS = 15_000;
-const REFRESH_DEBOUNCE_MS = 350;
+const REFRESH_DEBOUNCE_MS = 200;
 const SUBSCRIBE_TIMEOUT_MS = 8_000;
 
 function formatTime(date: Date | null): string | null {
@@ -27,19 +27,19 @@ function getConnectionText(state: ConnectionState, mode: IndicatorMode, lastSync
   const lastSync = formatTime(lastSyncedAt);
 
   if (mode === "customer") {
-    if (state === "connecting" || state === "syncing") return "Đang cập nhật lượt của bạn";
-    if (state === "connected") return lastSync ? `Đã kết nối. Đồng bộ lần cuối lúc ${lastSync}` : "Đã kết nối";
-    if (state === "offline") return "Mất mạng - vui lòng kiểm tra kết nối";
-    if (state === "degraded") return "Kết nối yếu - hệ thống đang tự cập nhật";
-    return "Không thể đồng bộ lượt của bạn";
+    if (state === "connecting" || state === "syncing") return "connecting - dang cap nhat luot cua ban";
+    if (state === "connected") return lastSync ? `connected - dong bo lan cuoi luc ${lastSync}` : "connected";
+    if (state === "offline") return "offline - vui long kiem tra ket noi";
+    if (state === "degraded") return "degraded - dang dung polling du phong";
+    return "error - khong the dong bo luot cua ban";
   }
 
-  if (state === "connecting") return "Đang kết nối";
-  if (state === "connected") return lastSync ? `Realtime đã kết nối. Đồng bộ lần cuối lúc ${lastSync}` : "Realtime đã kết nối";
-  if (state === "syncing") return "Đang đồng bộ";
-  if (state === "degraded") return "Kết nối không ổn định - đang tự làm mới";
-  if (state === "offline") return "Mất mạng";
-  return "Không thể đồng bộ";
+  if (state === "connecting") return "connecting - dang ket noi";
+  if (state === "connected") return lastSync ? `connected - dong bo lan cuoi luc ${lastSync}` : "connected";
+  if (state === "syncing") return "connected - dang dong bo";
+  if (state === "degraded") return "degraded - dang dung polling du phong";
+  if (state === "offline") return "offline - mat mang";
+  return "error - khong the dong bo";
 }
 
 export function QueueConnectionIndicator({
@@ -66,6 +66,12 @@ export function QueueConnectionIndicator({
     let subscribed = false;
     let intentionalClose = false;
     let subscribeTimeout: ReturnType<typeof setTimeout> | null = null;
+
+    const logStatus = (message: string, detail?: unknown) => {
+      if (process.env.NODE_ENV === "development") {
+        console.info(`[queue-realtime] ${message}`, detail ?? "");
+      }
+    };
 
     const stopPolling = () => {
       if (pollingRef.current) {
@@ -122,31 +128,37 @@ export function QueueConnectionIndicator({
 
     if (typeof navigator !== "undefined" && !navigator.onLine) {
       window.setTimeout(() => setState("offline"), 0);
-    } else if (!supabase) {
+    } else if (!roomId || !supabase) {
       window.setTimeout(() => setState("degraded"), 0);
+      logStatus(!roomId ? "missing roomId; using polling fallback" : "missing public Supabase config; using polling fallback");
       startPolling();
     } else {
       window.setTimeout(() => setState("connecting"), 0);
       subscribeTimeout = setTimeout(() => {
         if (!subscribed) {
           setState("degraded");
+          logStatus("subscription timeout; using polling fallback", { roomId });
           startPolling();
         }
       }, SUBSCRIBE_TIMEOUT_MS);
 
       channel = supabase
-        .channel(roomId ? `queue-events:${roomId}` : "queue-events:public-overview")
+        .channel(`queue-events:${roomId}`)
         .on(
           "postgres_changes",
           {
             event: "INSERT",
             schema: "public",
             table: "QueueEvent",
-            ...(roomId ? { filter: `roomId=eq.${roomId}` } : {}),
+            filter: `roomId=eq.${roomId}`,
           },
-          scheduleRefresh,
+          () => {
+            logStatus("QueueEvent insert received", { roomId });
+            scheduleRefresh();
+          },
         )
         .subscribe((status) => {
+          logStatus("subscription status", { roomId, status });
           if (status === "SUBSCRIBED") {
             subscribed = true;
             setState("connected");
@@ -208,7 +220,7 @@ export function QueueConnectionIndicator({
         void supabase.removeChannel(channel);
       }
     };
-  }, [intervalMs, mode, roomId, router]);
+  }, [intervalMs, roomId, router]);
 
   return (
     <div className="rounded border border-[var(--color-border)] bg-[var(--color-surface)] px-3 py-2 text-xs font-bold text-[var(--color-muted-text)]" role="status">

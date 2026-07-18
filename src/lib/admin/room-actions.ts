@@ -53,9 +53,25 @@ export async function updateRoomAction(
   }
 
   try {
-    await updateRoomForAdmin(account, prisma.room, parsed.data);
+    await prisma.$transaction(async (tx) => {
+      const current = await tx.room.findUnique({ where: { id: parsed.data.id }, select: { status: true } });
+      const room = await updateRoomForAdmin(account, tx.room, parsed.data);
+
+      if (current && current.status !== room.status) {
+        await tx.queueEvent.create({
+          data: {
+            roomId: room.id,
+            ticketId: null,
+            eventType: "ROOM_STATUS_CHANGED",
+          },
+        });
+      }
+    });
     revalidatePath("/admin/rooms");
     revalidatePath("/admin");
+    revalidatePath(`/admin/rooms/${parsed.data.id}`);
+    revalidatePath(`/admin/rooms/${parsed.data.id}/queue`);
+    revalidatePath(`/staff/rooms/${parsed.data.id}`);
     return actionOk();
   } catch {
     return actionError("Không thể cập nhật phòng.");
@@ -74,9 +90,25 @@ export async function pauseRoomAction(
   }
 
   try {
-    await pauseRoomForAdmin(account, prisma.room, parsed.data.id);
+    await prisma.$transaction(async (tx) => {
+      const current = await tx.room.findUnique({ where: { id: parsed.data.id }, select: { status: true } });
+      const room = await pauseRoomForAdmin(account, tx.room, parsed.data.id);
+
+      if (current && current.status !== room.status) {
+        await tx.queueEvent.create({
+          data: {
+            roomId: room.id,
+            ticketId: null,
+            eventType: "ROOM_STATUS_CHANGED",
+          },
+        });
+      }
+    });
     revalidatePath("/admin/rooms");
     revalidatePath("/admin");
+    revalidatePath(`/admin/rooms/${parsed.data.id}`);
+    revalidatePath(`/admin/rooms/${parsed.data.id}/queue`);
+    revalidatePath(`/staff/rooms/${parsed.data.id}`);
     return actionOk();
   } catch {
     return actionError("Không thể tạm dừng phòng.");
