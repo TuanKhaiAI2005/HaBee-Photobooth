@@ -11,8 +11,10 @@ type QueueTicketListItem = Pick<
   | "status"
   | "queuePosition"
   | "calledAt"
+  | "arrivalConfirmedAt"
   | "serviceStartedAt"
   | "expectedEndAt"
+  | "cancelledAt"
   | "registeredAt"
 >;
 
@@ -75,8 +77,10 @@ export async function getAdminRoomQueue(prisma: Prisma.TransactionClient, roomId
           status: true,
           queuePosition: true,
           calledAt: true,
+          arrivalConfirmedAt: true,
           serviceStartedAt: true,
           expectedEndAt: true,
+          cancelledAt: true,
           registeredAt: true,
         },
       },

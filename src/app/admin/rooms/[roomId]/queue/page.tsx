@@ -36,6 +36,36 @@ function TicketIdentity({ ticket, masked = false }: { ticket: AdminQueueTicket; 
   );
 }
 
+function CustomerConfirmationStatus({ ticket }: { ticket: AdminQueueTicket }) {
+  if (ticket.status === "CANCELLED") {
+    return <p className="photo-badge mt-2">Khách đã hủy vé</p>;
+  }
+
+  if (ticket.status === "NO_SHOW") {
+    return <p className="photo-badge mt-2">Khách không đến</p>;
+  }
+
+  return (
+    <p className="photo-badge mt-2">
+      {ticket.arrivalConfirmedAt ? "Khách đã xác nhận" : "Khách chưa xác nhận"}
+    </p>
+  );
+}
+
+function CallNextForm({ roomId }: { roomId: string }) {
+  return (
+    <ConfirmForm
+      action={callNextTicketAction}
+      className="grid gap-3"
+      confirmMessage="Gọi khách tiếp theo?"
+      pendingLabel="Đang gọi..."
+      submitLabel="Gọi khách tiếp theo"
+    >
+      <input name="roomId" type="hidden" value={roomId} />
+    </ConfirmForm>
+  );
+}
+
 export default async function AdminRoomQueuePage({ params }: AdminQueuePageProps) {
   await requireAdmin();
   const { roomId } = await params;
@@ -110,6 +140,7 @@ export default async function AdminRoomQueuePage({ params }: AdminQueuePageProps
           {view.called ? (
             <div className="mt-4 grid gap-4">
               <TicketIdentity ticket={view.called} />
+              <CustomerConfirmationStatus ticket={view.called} />
               <div className="grid gap-3 sm:grid-cols-3">
                 <ConfirmForm action={startServiceAction} className="grid gap-2" confirmMessage="Xác nhận khách vào phòng?" submitLabel="Vào phòng">
                   <input name="ticketId" type="hidden" value={view.called.id} />
@@ -125,15 +156,7 @@ export default async function AdminRoomQueuePage({ params }: AdminQueuePageProps
           ) : (
             <div className="mt-4 grid gap-3">
               <p className="text-sm text-[var(--color-muted-text)]">Chưa có khách được gọi.</p>
-              <ConfirmForm
-                action={callNextTicketAction}
-                className="grid gap-3"
-                confirmMessage="Gọi khách tiếp theo?"
-                pendingLabel="Đang gọi..."
-                submitLabel="Gọi khách tiếp theo"
-              >
-                <input name="roomId" type="hidden" value={view.room.id} />
-              </ConfirmForm>
+              <CallNextForm roomId={view.room.id} />
             </div>
           )}
         </div>

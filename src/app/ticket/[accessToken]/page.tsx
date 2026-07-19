@@ -91,19 +91,34 @@ export default async function TicketPage({ params }: TicketPageProps) {
           <p className="mt-2 text-sm text-[var(--color-muted-text)]">
             Vé {ticket.ticketCode} được gọi vào phòng {ticket.roomName}. Vui lòng đi vào đúng phòng và bấm xác nhận khi bạn đã vào phòng chụp.
           </p>
-          <ConfirmForm
-            action={confirmArrivedAction}
-            className="mt-4 grid gap-3"
-            confirmMessage="Xác nhận bạn đã vào phòng?"
-            pendingLabel="Đang xác nhận..."
-            submitLabel="Tôi đã vào phòng"
-          >
-            <input name="accessToken" type="hidden" value={accessToken} />
-          </ConfirmForm>
+          {ticket.arrivalConfirmedAt ? (
+            <p className="photo-badge mt-4">Bạn đã xác nhận với quầy</p>
+          ) : (
+            <div className="mt-4 grid gap-3 sm:grid-cols-2">
+              <ConfirmForm
+                action={confirmArrivedAction}
+                className="grid gap-3"
+                confirmMessage="Xác nhận bạn đã vào phòng?"
+                pendingLabel="Đang xác nhận..."
+                submitLabel="Tôi đã vào phòng"
+              >
+                <input name="accessToken" type="hidden" value={accessToken} />
+              </ConfirmForm>
+              <ConfirmForm
+                action={cancelTicketAction}
+                className="grid gap-3"
+                confirmMessage="Xác nhận hủy vé của bạn?"
+                pendingLabel="Đang hủy..."
+                submitLabel="Hủy vé"
+              >
+                <input name="accessToken" type="hidden" value={accessToken} />
+              </ConfirmForm>
+            </div>
+          )}
         </section>
       ) : null}
 
-      {ticket.canCancel ? (
+      {ticket.canCancel && !ticket.canConfirmArrival ? (
         <section className="photo-card-soft">
           <h2 className="text-2xl font-black">Hủy vé</h2>
           <ConfirmForm

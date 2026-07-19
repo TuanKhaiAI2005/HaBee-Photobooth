@@ -33,6 +33,7 @@ export type PublicTicketView = {
   roomPublicToken: string;
   status: QueueTicket["status"];
   calledAt: Date | null;
+  arrivalConfirmedAt: Date | null;
   serviceStartedAt: Date | null;
   expectedEndAt: Date | null;
   serverNow: Date;
@@ -233,6 +234,7 @@ export async function getTicketByAccessToken(prisma: TransactionHost, accessToke
     roomPublicToken: ticket.room.publicToken,
     status: ticket.status,
     calledAt: ticket.calledAt,
+    arrivalConfirmedAt: ticket.arrivalConfirmedAt,
     serviceStartedAt: ticket.serviceStartedAt,
     expectedEndAt: ticket.expectedEndAt,
     serverNow: new Date(),

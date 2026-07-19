@@ -149,9 +149,11 @@ export function CalledNotification({ ticket, mode }: CalledNotificationProps) {
       navigator.vibrate?.([160, 80, 160]);
     }
 
-    showBrowserNotification(ticket, mode);
+    if (mode === "customer") {
+      showBrowserNotification(ticket, mode);
+    }
 
-    if (soundEnabled) {
+    if (mode === "customer" && soundEnabled) {
       try {
         soundRef.current?.stop();
         soundRef.current = startNotificationSound();
@@ -204,17 +206,19 @@ export function CalledNotification({ ticket, mode }: CalledNotificationProps) {
 
   return (
     <>
-      <div className="photo-card-soft flex flex-wrap items-center gap-3" aria-live="polite">
-        <span className="text-sm font-bold">Am thanh thong bao</span>
-        <button className={soundEnabled ? "photo-button-secondary" : "photo-button"} onClick={() => toggleSound(!soundEnabled)} type="button">
-          {soundEnabled ? "Tat am thanh" : "Bat am thanh thong bao"}
-        </button>
-        {notificationPermission !== "unsupported" ? (
-          <span className="text-xs font-bold text-[var(--color-muted-text)]">
-            {notificationPermission === "granted" ? "Thong bao may: da bat" : "Thong bao may: chua bat"}
-          </span>
-        ) : null}
-      </div>
+      {mode === "customer" ? (
+        <div className="photo-card-soft flex flex-wrap items-center gap-3" aria-live="polite">
+          <span className="text-sm font-bold">Am thanh thong bao</span>
+          <button className={soundEnabled ? "photo-button-secondary" : "photo-button"} onClick={() => toggleSound(!soundEnabled)} type="button">
+            {soundEnabled ? "Tat am thanh" : "Bat am thanh thong bao"}
+          </button>
+          {notificationPermission !== "unsupported" ? (
+            <span className="text-xs font-bold text-[var(--color-muted-text)]">
+              {notificationPermission === "granted" ? "Thong bao may: da bat" : "Thong bao may: chua bat"}
+            </span>
+          ) : null}
+        </div>
+      ) : null}
       {visibleTicket ? (
         <div className="fixed inset-x-4 bottom-4 z-50 mx-auto max-w-md rounded-lg border-2 border-[var(--color-navy)] bg-[var(--color-surface)] p-4 text-[var(--color-navy)] shadow-[5px_5px_0_var(--color-navy)]" role="status">
           <p className="text-xs font-black uppercase text-[var(--color-muted-text)]">{mode === "admin" ? "Ve vua duoc goi" : "Da toi luot cua ban"}</p>

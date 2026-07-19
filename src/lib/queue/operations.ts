@@ -134,6 +134,32 @@ export async function startServiceByAccessToken(prisma: PrismaClient, accessToke
   });
 }
 
+export async function confirmArrivalByAccessToken(prisma: PrismaClient, accessToken: string) {
+  const accessTokenHash = hashAccessToken(accessToken);
+
+  return withSerializableRetry(prisma, async (tx) => {
+    const ticket = await tx.queueTicket.findFirst({
+      where: { customerAccessTokenHash: accessTokenHash },
+    });
+
+    if (!ticket) {
+      throw new Error("Link vé không hợp lệ.");
+    }
+
+    if (ticket.status !== "CALLED") {
+      throw new Error("Chỉ có thể xác nhận khi vé đã được gọi.");
+    }
+
+    const updated = await tx.queueTicket.update({
+      where: { id: ticket.id, status: "CALLED" },
+      data: { arrivalConfirmedAt: new Date() },
+    });
+
+    await createEvent(tx, ticket.roomId, updated.id, "CUSTOMER_CONFIRMED_ARRIVAL");
+    return updated;
+  });
+}
+
 async function startServiceInsideTransaction(tx: Prisma.TransactionClient, ticketId: string) {
   const ticket = await tx.queueTicket.findUnique({ where: { id: ticketId }, include: { room: true } });
 

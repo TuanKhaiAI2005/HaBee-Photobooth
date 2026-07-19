@@ -16,6 +16,7 @@ function makeTicket(overrides: Partial<QueueTicket> = {}): QueueTicket {
     queuePosition: 1,
     registeredAt: new Date("2026-01-01T00:00:00.000Z"),
     calledAt: null,
+    arrivalConfirmedAt: null,
     serviceStartedAt: null,
     expectedEndAt: null,
     checkoutAt: null,

@@ -7,7 +7,7 @@ import { createTicket } from "@/lib/public/tickets";
 import { accessTokenSchema, createTicketSchema } from "@/lib/public/ticket-schemas";
 import type { AdminActionState } from "@/lib/admin/action-state";
 import { actionError, actionOk } from "@/lib/admin/action-state";
-import { cancelTicketByToken, startServiceByAccessToken } from "@/lib/queue/operations";
+import { cancelTicketByToken, confirmArrivalByAccessToken } from "@/lib/queue/operations";
 
 export async function createTicketAction(
   _state: AdminActionState,
@@ -67,7 +67,7 @@ export async function confirmArrivedAction(
   }
 
   try {
-    await startServiceByAccessToken(prisma, parsed.data);
+    await confirmArrivalByAccessToken(prisma, parsed.data);
     revalidatePath(`/ticket/${parsed.data}`);
     return actionOk();
   } catch (error) {

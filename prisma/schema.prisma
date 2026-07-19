@@ -75,6 +75,7 @@ model QueueTicket {
   queuePosition           Int
   registeredAt            DateTime          @default(now())
   calledAt                DateTime?
+  arrivalConfirmedAt      DateTime?
   serviceStartedAt        DateTime?
   expectedEndAt           DateTime?
   checkoutAt              DateTime?
