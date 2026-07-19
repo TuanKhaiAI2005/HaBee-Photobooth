@@ -128,12 +128,20 @@ export function QueueConnectionIndicator({
 
     if (typeof navigator !== "undefined" && !navigator.onLine) {
       window.setTimeout(() => setState("offline"), 0);
-    } else if (!roomId || !supabase) {
+    } else if (!supabase) {
       window.setTimeout(() => setState("degraded"), 0);
-      logStatus(!roomId ? "missing roomId; using polling fallback" : "missing public Supabase config; using polling fallback");
+      logStatus("missing public Supabase config; using polling fallback");
       startPolling();
     } else {
       window.setTimeout(() => setState("connecting"), 0);
+      const channelName = roomId ? `queue-events:${roomId}` : "queue-events:all";
+      const changeConfig = {
+        event: "INSERT",
+        schema: "public",
+        table: "QueueEvent",
+        ...(roomId ? { filter: `roomId=eq.${roomId}` } : {}),
+      } as const;
+
       subscribeTimeout = setTimeout(() => {
         if (!subscribed) {
           setState("degraded");
@@ -143,15 +151,10 @@ export function QueueConnectionIndicator({
       }, SUBSCRIBE_TIMEOUT_MS);
 
       channel = supabase
-        .channel(`queue-events:${roomId}`)
+        .channel(channelName)
         .on(
           "postgres_changes",
-          {
-            event: "INSERT",
-            schema: "public",
-            table: "QueueEvent",
-            filter: `roomId=eq.${roomId}`,
-          },
+          changeConfig,
           () => {
             logStatus("QueueEvent insert received", { roomId });
             scheduleRefresh();

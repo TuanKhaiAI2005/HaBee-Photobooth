@@ -51,7 +51,7 @@ export default async function PublicRoomsPage() {
                   <dt>Thời lượng</dt>
                   <dd className="font-black">{room.defaultDurationMinutes} phút</dd>
                 </div>
-                <div className="photo-stat flex justify-between gap-3 bg-[var(--color-pink)] text-[var(--color-cream)] photo-on-highlight">
+                <div className="photo-stat flex justify-between gap-3">
                   <dt>Đang chờ</dt>
                   <dd className="font-black">{room.waitingCount} vé</dd>
                 </div>

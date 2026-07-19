@@ -37,7 +37,7 @@ export default async function PublicRoomDetailPage({ params }: PublicRoomDetailP
           <p className="text-xs font-bold uppercase text-[var(--color-muted-text)]">Thời lượng</p>
           <p className="mt-1 text-2xl font-black">{detail.room.defaultDurationMinutes} phút</p>
         </div>
-        <div className="photo-stat bg-[var(--color-pink)] text-[var(--color-cream)] photo-on-highlight">
+        <div className="photo-stat">
           <p className="text-xs font-bold uppercase text-[var(--color-muted-text)]">Đang chờ</p>
           <p className="mt-1 text-2xl font-black">{detail.room.waitingCount} vé</p>
         </div>

@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { requireAdmin } from "@/lib/auth/guards";
 import { AdminNav } from "@/app/admin/admin-nav";
 import { ConfirmForm } from "@/app/components/confirm-form";
+import { QueueConnectionIndicator } from "@/app/components/connection-indicator";
 import { createRoomAction, deleteRoomAction, pauseRoomAction, updateRoomAction } from "@/lib/admin/room-actions";
 import { roomStatusLabel } from "@/lib/labels";
 import { createQrPngDataUrl, getJoinPublicUrl } from "@/lib/public/qr";
@@ -20,6 +21,14 @@ export default async function AdminRoomsPage() {
 
   const rooms = await prisma.room.findMany({
     orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }],
+    include: {
+      queueTickets: {
+        select: {
+          id: true,
+          status: true,
+        },
+      },
+    },
   });
   let joinUrl: string | null = null;
   let joinQr: string | null = null;
@@ -35,6 +44,7 @@ export default async function AdminRoomsPage() {
   return (
     <main className="photo-shell">
       <AdminNav />
+      <QueueConnectionIndicator mode="admin" />
       <section className="photo-card">
         <p className="photo-badge">Quản lý phòng</p>
         <h1 className="mt-3 text-4xl font-black text-[var(--color-navy)]">Phòng photobooth</h1>
@@ -106,21 +116,41 @@ export default async function AdminRoomsPage() {
             Chưa có phòng nào.
           </div>
         ) : (
-          rooms.map((room) => (
+          rooms.map((room) => {
+            const waitingCount = room.queueTickets.filter((ticket) => ticket.status === "WAITING").length;
+            const isRoomIdle = !room.queueTickets.some((ticket) => ticket.status === "CALLED" || ticket.status === "IN_SERVICE");
+            const needsOperation = isRoomIdle && waitingCount > 0;
+
+            return (
             <article className="photo-card-soft" key={room.id}>
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div>
                   <h2 className="text-2xl font-black">{room.name}</h2>
                   <p className="mt-1 text-sm text-[var(--color-muted-text)]">Public token: {room.publicToken}</p>
-                  <Link className="photo-button-secondary mt-3" href={`/admin/rooms/${room.id}`}>
-                    Xem QR
-                  </Link>
-                  <Link className="photo-button ml-3 mt-3" href={`/admin/rooms/${room.id}/queue`}>
-                    Vận hành hàng đợi
-                  </Link>
+                  <div className="mt-3 flex flex-wrap gap-3">
+                    <Link className="photo-button-secondary" href={`/admin/rooms/${room.id}`}>
+                      Xem QR
+                    </Link>
+                    <Link className={needsOperation ? "photo-button" : "photo-button-secondary"} href={`/admin/rooms/${room.id}/queue`}>
+                      Vận hành hàng đợi
+                    </Link>
+                  </div>
                 </div>
-                <span className="photo-badge">{roomStatusLabel(room.status)}</span>
+                <div className="flex flex-wrap justify-end gap-2">
+                  {needsOperation ? <span className="photo-badge">Cần vận hành</span> : null}
+                  <span className="photo-badge">{roomStatusLabel(room.status)}</span>
+                </div>
               </div>
+              <dl className="mt-4 grid gap-3 sm:grid-cols-2">
+                <div className="photo-stat">
+                  <dt className="text-xs font-bold uppercase text-[var(--color-muted-text)]">Đang chờ</dt>
+                  <dd className="mt-1 text-2xl font-black">{waitingCount} khách</dd>
+                </div>
+                <div className="photo-stat">
+                  <dt className="text-xs font-bold uppercase text-[var(--color-muted-text)]">Trạng thái vận hành</dt>
+                  <dd className="mt-1 text-lg font-black">{needsOperation ? "Phòng trống, cần gọi khách" : "Đang ổn"}</dd>
+                </div>
+              </dl>
               <ConfirmForm
                 action={updateRoomAction}
                 className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-5"
@@ -175,7 +205,8 @@ export default async function AdminRoomsPage() {
                 <input name="id" type="hidden" value={room.id} />
               </ConfirmForm>
             </article>
-          ))
+            );
+          })
         )}
       </section>
     </main>

@@ -86,8 +86,8 @@ export default async function TicketPage({ params }: TicketPageProps) {
       </section>
 
       {ticket.canConfirmArrival ? (
-        <section className="photo-card bg-[var(--color-pink)] text-[var(--color-cream)] photo-on-highlight">
-          <h2 className="text-3xl font-black">Đã tới lượt của bạn</h2>
+        <section className="photo-card">
+          <h2 className="text-3xl font-black text-[var(--color-primary-deep)]">Đã tới lượt của bạn</h2>
           <p className="mt-2 text-sm text-[var(--color-muted-text)]">
             Vé {ticket.ticketCode} được gọi vào phòng {ticket.roomName}. Vui lòng đi vào đúng phòng và bấm xác nhận khi bạn đã vào phòng chụp.
           </p>

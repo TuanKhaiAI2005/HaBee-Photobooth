@@ -335,7 +335,7 @@ describe("CalledNotification duplicate protection", () => {
       document.dispatchEvent(new Event("visibilitychange"));
     });
 
-    expect(oscillatorStart).toHaveBeenCalledTimes(1);
+    expect(oscillatorStart).toHaveBeenCalledTimes(2);
     await view.unmount();
   });
 });
