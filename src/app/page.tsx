@@ -2,15 +2,15 @@ import Link from "next/link";
 import { BrandMark } from "@/app/components/brand-mark";
 
 const highlights = [
-  "Khach quet QR de lay so thu tu",
-  "Quan ly luot goi va thoi gian chup",
-  "Staff xem trang thai phong theo thoi gian thuc",
+  "Khách quét QR để lấy số thứ tự",
+  "Quản lý lượt gọi và thời gian chụp",
+  "Staff xem trạng thái phòng theo thời gian thực",
 ];
 
 const steps = [
-  { label: "01", text: "Khach chon phong va nhan ve" },
-  { label: "02", text: "Quan ly goi khach khi den luot" },
-  { label: "03", text: "Phong chup cap nhat dang cho, dang chup, hoan tat" },
+  { label: "01", text: "Khách chọn phòng và nhận vé" },
+  { label: "02", text: "Quản lý gọi khách khi đến lượt" },
+  { label: "03", text: "Phòng chụp cập nhật đang chờ, đang chụp, hoàn tất" },
 ];
 
 export default function Home() {
@@ -19,26 +19,23 @@ export default function Home() {
       <section className="photo-card photo-home-card grid gap-8 md:grid-cols-[1.08fr_0.92fr] md:items-center">
         <div>
           <BrandMark />
-          <h1 className="mt-6 max-w-2xl text-3xl font-black leading-tight text-[var(--color-ink)] sm:text-5xl">
-            He thong xep hang cho photobooth HaBee
-          </h1>
-          <p className="mt-4 max-w-xl text-base leading-7 text-[var(--color-muted-text)]">
-            Mot noi gon gang de khach lay ve, quan ly goi luot va staff theo doi
-            trang thai phong chup.
+          <p className="mt-6 max-w-xl text-base font-bold leading-7 text-[var(--color-muted-text)]">
+            Khách lấy vé nhanh, quầy gọi lượt gọn gàng, staff theo dõi trạng thái
+            phòng chụp theo thời gian thực.
           </p>
           <div className="mt-6 flex flex-wrap gap-3">
             <Link className="photo-button" href="/join">
-              Lay ve cho
+              Lấy vé chờ
             </Link>
             <Link className="photo-button-secondary" href="/admin">
-              Quan ly
+              Quản lý
             </Link>
           </div>
         </div>
 
         <div className="photo-home-panel">
           <p className="text-sm font-black uppercase text-[var(--color-primary-deep)]">
-            Quy trinh don gian
+            Quy trình đơn giản
           </p>
           <div className="mt-5 grid gap-3">
             {steps.map((step) => (
