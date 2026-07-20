@@ -49,13 +49,24 @@ export default async function AdminPage() {
   return (
     <main className="photo-shell">
       <AdminNav />
-      <section className="photo-card habee-decor">
-        <p className="photo-badge">Admin studio</p>
-        <div className="mt-4">
+      <section className="photo-card admin-overview-card habee-decor">
+        <div className="admin-overview-brand">
+          <p className="photo-badge">Admin studio</p>
           <BrandMark />
         </div>
-        <h1 className="mt-5 text-4xl font-black text-[var(--color-ink)]">Bang dieu khien HaBee</h1>
-        <p className="mt-3 text-[var(--color-muted-text)]">Dang dang nhap: {account.fullName}.</p>
+        <div className="admin-overview-content">
+          <span className="admin-status-pill">San sang van hanh</span>
+          <h1>Bang dieu khien HaBee</h1>
+          <p>Dang dang nhap: {account.fullName}.</p>
+          <div className="admin-overview-actions" aria-label="Tac vu nhanh">
+            <Link className="photo-button" href="/admin/rooms">
+              Quan ly phong
+            </Link>
+            <Link className="photo-button-secondary" href="/admin/history">
+              Xem lich su
+            </Link>
+          </div>
+        </div>
       </section>
       <section className="grid gap-4 sm:grid-cols-2">
         <div className="photo-stat">

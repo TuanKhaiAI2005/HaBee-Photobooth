@@ -8,6 +8,7 @@ import { createRoomAction, deleteRoomAction, pauseRoomAction, updateRoomAction }
 import { roomStatusLabel } from "@/lib/labels";
 import { createQrPngDataUrl, getJoinPublicUrl } from "@/lib/public/qr";
 import { CopyUrlButton } from "@/app/components/copy-url-button";
+import { QueueTimer } from "@/app/components/queue-timer";
 
 const roomStatuses = [
   ["ACTIVE", "Hoạt động"],
@@ -23,13 +24,19 @@ export default async function AdminRoomsPage() {
     orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }],
     include: {
       queueTickets: {
+        where: { status: { in: ["WAITING", "CALLED", "IN_SERVICE"] } },
+        orderBy: [{ queuePosition: "asc" }, { registeredAt: "asc" }],
         select: {
           id: true,
+          ticketCode: true,
+          customerName: true,
           status: true,
+          expectedEndAt: true,
         },
       },
     },
   });
+  const serverNow = new Date();
   let joinUrl: string | null = null;
   let joinQr: string | null = null;
   let qrError: string | null = null;
@@ -118,7 +125,9 @@ export default async function AdminRoomsPage() {
         ) : (
           rooms.map((room) => {
             const waitingCount = room.queueTickets.filter((ticket) => ticket.status === "WAITING").length;
-            const isRoomIdle = !room.queueTickets.some((ticket) => ticket.status === "CALLED" || ticket.status === "IN_SERVICE");
+            const inServiceTicket = room.queueTickets.find((ticket) => ticket.status === "IN_SERVICE") ?? null;
+            const calledTicket = room.queueTickets.find((ticket) => ticket.status === "CALLED") ?? null;
+            const isRoomIdle = !inServiceTicket && !calledTicket;
             const needsOperation = isRoomIdle && waitingCount > 0;
 
             return (
@@ -141,14 +150,34 @@ export default async function AdminRoomsPage() {
                   <span className="photo-badge">{roomStatusLabel(room.status)}</span>
                 </div>
               </div>
-              <dl className="mt-4 grid gap-3 sm:grid-cols-2">
+              <dl className="mt-4 grid gap-3 lg:grid-cols-3">
                 <div className="photo-stat">
                   <dt className="text-xs font-bold uppercase text-[var(--color-muted-text)]">Đang chờ</dt>
                   <dd className="mt-1 text-2xl font-black">{waitingCount} khách</dd>
                 </div>
+                <div className="photo-stat room-current-stat">
+                  <dt className="text-xs font-bold uppercase text-[var(--color-muted-text)]">Đang sử dụng</dt>
+                  {inServiceTicket ? (
+                    <dd className="mt-2 grid gap-1">
+                      <span className="text-lg font-black text-[var(--color-ink)]">{inServiceTicket.ticketCode} - {inServiceTicket.customerName}</span>
+                      <span className="text-sm font-bold text-[var(--color-muted-text)]">
+                        Còn lại: <QueueTimer expectedEndAt={inServiceTicket.expectedEndAt} serverNow={serverNow} />
+                      </span>
+                    </dd>
+                  ) : calledTicket ? (
+                    <dd className="mt-2 grid gap-1">
+                      <span className="text-lg font-black text-[var(--color-primary-deep)]">{calledTicket.ticketCode} - {calledTicket.customerName}</span>
+                      <span className="text-sm font-bold text-[var(--color-muted-text)]">Đã gọi, chờ khách xác nhận</span>
+                    </dd>
+                  ) : (
+                    <dd className="mt-1 text-lg font-black text-[var(--color-muted-text)]">Chưa có khách</dd>
+                  )}
+                </div>
                 <div className="photo-stat">
                   <dt className="text-xs font-bold uppercase text-[var(--color-muted-text)]">Trạng thái vận hành</dt>
-                  <dd className="mt-1 text-lg font-black">{needsOperation ? "Phòng trống, cần gọi khách" : "Đang ổn"}</dd>
+                  <dd className="mt-1 text-lg font-black">
+                    {needsOperation ? "Phòng trống, cần gọi khách" : inServiceTicket ? "Đang chụp" : calledTicket ? "Đã gọi khách" : "Đang ổn"}
+                  </dd>
                 </div>
               </dl>
               <ConfirmForm
