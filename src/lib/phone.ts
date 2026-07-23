@@ -8,7 +8,9 @@ export function normalizeVietnamPhone(input: string): string | null {
 
   let nationalNumber: string;
 
-  if (digits.startsWith("0")) {
+  if (/^[1-9]\d{8}$/.test(digits)) {
+    nationalNumber = digits;
+  } else if (digits.startsWith("0")) {
     nationalNumber = digits.slice(1);
   } else if (digits.startsWith("84")) {
     nationalNumber = digits.slice(2);

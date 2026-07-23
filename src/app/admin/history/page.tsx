@@ -96,7 +96,7 @@ export default async function AdminHistoryPage({ searchParams }: HistoryPageProp
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div>
                     <p className="text-lg font-black">{ticket.ticketCode} - {ticket.customerName}</p>
-                    <p className="break-words text-sm text-[var(--color-muted-text)]">{ticket.normalizedPhone}</p>
+                    <p className="break-words text-sm text-[var(--color-muted-text)]">Số điện thoại: {ticket.normalizedPhone}</p>
                   </div>
                   <span className="rounded border border-[var(--color-navy)] px-2 py-1 text-xs font-bold" style={{ backgroundColor: ticket.roomColor }}>
                     {ticket.roomName}
@@ -108,6 +108,7 @@ export default async function AdminHistoryPage({ searchParams }: HistoryPageProp
                   <div><dt className="font-bold">Bắt đầu</dt><dd>{formatVietnamDateTime(ticket.serviceStartedAt)}</dd></div>
                   <div><dt className="font-bold">Kết thúc</dt><dd>{formatVietnamDateTime(ticket.completedAt)}</dd></div>
                   <div><dt className="font-bold">Thời lượng</dt><dd>{ticket.duration}</dd></div>
+                  <div><dt className="font-bold">Phòng đăng ký</dt><dd>{ticket.roomName}</dd></div>
                   <div><dt className="font-bold">Trạng thái cuối</dt><dd>{ticketStatusLabel(ticket.status)}</dd></div>
                 </dl>
                 <ConfirmForm

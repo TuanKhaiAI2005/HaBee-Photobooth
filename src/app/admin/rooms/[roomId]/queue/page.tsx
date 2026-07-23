@@ -8,7 +8,8 @@ import { QueueRealtimeRefetch } from "@/app/components/queue-realtime-refetch";
 import { QueueTimer } from "@/app/components/queue-timer";
 import { CalledNotification } from "@/app/components/called-notification";
 import { getAdminRoomQueue, type AdminQueueTicket } from "@/lib/queue/read-models";
-import { roomStatusLabel } from "@/lib/labels";
+import { roomStatusLabel, ticketStatusLabel } from "@/lib/labels";
+import { formatVietnamDateTime } from "@/lib/timezone";
 import {
   callNextTicketAction,
   cancelTicketAction,
@@ -31,7 +32,8 @@ function TicketIdentity({ ticket, masked = false }: { ticket: AdminQueueTicket; 
       <p className="text-sm text-[var(--color-muted-text)]">
         {masked ? "Thông tin đã che" : `${ticket.customerName} - ${ticket.normalizedPhone}`}
       </p>
-      <p className="text-xs text-[var(--color-muted-text)]">Vị trí #{ticket.queuePosition}</p>
+      <p className="text-xs text-[var(--color-muted-text)]">Vị trí #{ticket.queuePosition} - Đăng ký {formatVietnamDateTime(ticket.registeredAt)}</p>
+      <p className="text-xs text-[var(--color-muted-text)]">Trạng thái vé: {ticketStatusLabel(ticket.status)}</p>
     </div>
   );
 }

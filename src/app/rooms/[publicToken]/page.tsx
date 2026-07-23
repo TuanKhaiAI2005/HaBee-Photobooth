@@ -1,10 +1,9 @@
 ﻿import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { getPublicRoomDetail } from "@/lib/public/tickets";
-import { createTicketAction } from "@/lib/public/actions";
-import { ConfirmForm } from "@/app/components/confirm-form";
 import { QueueRealtimeRefetch } from "@/app/components/queue-realtime-refetch";
 import { roomStatusLabel, ticketStatusLabel } from "@/lib/labels";
+import { TicketRegistrationForm } from "@/app/rooms/ticket-registration-form";
 
 export const dynamic = "force-dynamic";
 
@@ -75,23 +74,9 @@ export default async function PublicRoomDetailPage({ params }: PublicRoomDetailP
       <section className="photo-card">
         <h2 className="text-2xl font-black">Lấy vé của bạn</h2>
         {detail.canRegister ? (
-          <ConfirmForm
-            action={createTicketAction}
-            className="mt-4 grid gap-4 sm:grid-cols-2"
-            confirmMessage="Xác nhận đăng ký vào hàng đợi?"
-            pendingLabel="Đang đăng ký..."
-            submitLabel="Đăng ký"
-          >
-            <input name="publicToken" type="hidden" value={detail.room.publicToken} />
-            <label className="grid gap-2 text-sm font-bold">
-              Họ tên
-              <input className="photo-input" name="customerName" required />
-            </label>
-            <label className="grid gap-2 text-sm font-bold">
-              Số điện thoại
-              <input className="photo-input" name="phone" required inputMode="tel" />
-            </label>
-          </ConfirmForm>
+          <div className="mt-4">
+            <TicketRegistrationForm publicToken={detail.room.publicToken} />
+          </div>
         ) : (
           <p className="mt-3 text-sm text-[var(--color-muted-text)]">Phòng đang tạm dừng, hiện không nhận đăng ký mới.</p>
         )}

@@ -7,8 +7,10 @@ export const createTicketSchema = z.object({
   phone: z
     .string()
     .trim()
-    .min(8)
-    .max(24)
+    .min(1, "Vui lòng nhập số điện thoại.")
+    .regex(/^\d+$/, "Số điện thoại chỉ được gồm chữ số.")
+    .min(9, "Số điện thoại phải có 9-11 chữ số.")
+    .max(11, "Số điện thoại phải có 9-11 chữ số.")
     .transform((value, context) => {
       const normalized = normalizeVietnamPhone(value);
 

@@ -6,6 +6,10 @@ describe("normalizeVietnamPhone", () => {
     expect(normalizeVietnamPhone("0912345678")).toBe("+84912345678");
   });
 
+  it("normalizes 9 digit national numbers", () => {
+    expect(normalizeVietnamPhone("912345678")).toBe("+84912345678");
+  });
+
   it("normalizes numbers starting with 84", () => {
     expect(normalizeVietnamPhone("84912345678")).toBe("+84912345678");
   });
