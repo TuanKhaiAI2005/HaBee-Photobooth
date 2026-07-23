@@ -443,6 +443,20 @@ body::before {
     font-size: clamp(1.45rem, 4.8vw, 2.65rem);
   }
 
+  .public-room-brand-row {
+    display: inline-flex;
+    align-items: flex-end;
+    gap: 0.18rem;
+  }
+
+  .public-room-brand-badge {
+    margin-bottom: 0.12rem;
+    min-height: 1.95rem;
+    padding-inline: 1rem;
+    font-size: 0.82rem;
+    line-height: 1;
+  }
+
   .habee-decor {
     position: relative;
   }
