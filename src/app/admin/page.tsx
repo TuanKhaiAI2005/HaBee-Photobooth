@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { AdminNav } from "@/app/admin/admin-nav";
-import { BrandMark } from "@/app/components/brand-mark";
+import { BrandMark, HaBeeLogoText } from "@/app/components/brand-mark";
 import { requireAdmin } from "@/lib/auth/guards";
 import { prisma } from "@/lib/prisma";
 import { todayVietnamUtcRange } from "@/lib/timezone";
@@ -56,7 +56,7 @@ export default async function AdminPage() {
         </div>
         <div className="admin-overview-content">
           <span className="admin-status-pill">San sang van hanh</span>
-          <h1>Bang dieu khien HaBee</h1>
+          <h1>Bang dieu khien <HaBeeLogoText /></h1>
           <p>Dang dang nhap: {account.fullName}.</p>
           <div className="admin-overview-actions" aria-label="Tac vu nhanh">
             <Link className="photo-button" href="/admin/rooms">

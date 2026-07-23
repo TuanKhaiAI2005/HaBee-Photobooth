@@ -3,7 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { listPublicRooms } from "@/lib/public/tickets";
 import { roomStatusLabel } from "@/lib/labels";
 import { QueueConnectionIndicator } from "@/app/components/connection-indicator";
-import { BrandMark } from "@/app/components/brand-mark";
+import { BrandMark, HaBeeLogoText } from "@/app/components/brand-mark";
 
 export const dynamic = "force-dynamic";
 
@@ -16,7 +16,7 @@ export default async function PublicRoomsPage() {
       <section className="photo-card habee-decor grid gap-5 md:grid-cols-[1fr_auto] md:items-center">
         <div>
           <BrandMark compact />
-          <p className="photo-badge mt-4">HaBee Photobooth</p>
+          <p className="photo-badge mt-4"><HaBeeLogoText /> Photobooth</p>
           <h1 className="mt-3 text-3xl font-black text-[var(--color-navy)] sm:text-4xl">
             Chọn phòng để lấy vé hàng đợi
           </h1>

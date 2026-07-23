@@ -378,26 +378,37 @@ body::before {
   }
 
   .brand-bubble {
-    color: #ff8db4;
+    display: inline-block;
+    color: #ff9fc2;
     font-family: "Arial Rounded MT Bold", "Cooper Black", "Trebuchet MS", var(--font-ui);
     font-size: clamp(2.15rem, 8vw, 6.35rem);
     font-weight: 900;
     letter-spacing: 0;
-    -webkit-text-stroke: 0.06em #fffaf1;
+    -webkit-text-stroke: 0.045em #fffaf4;
     paint-order: stroke fill;
+    -webkit-text-fill-color: #ff9fc2;
     text-shadow:
-      0 -0.08em 0 rgb(255 255 255 / 0.72),
-      0.025em 0.035em 0 #ffbfd3,
-      0.045em 0.065em 0 #f36f9d,
-      0.075em 0.105em 0 #dc507e,
-      0 0.11em 0 #fff0d8,
-      0 0.17em 0 rgb(238 185 105 / 0.52),
-      0 0.27em 0.42em rgb(219 85 125 / 0.26),
-      0 0.04em 0.22em rgb(255 255 255 / 0.96);
-    filter:
-      drop-shadow(0 0.05em 0.04em rgb(255 255 255 / 0.92))
-      drop-shadow(0 0.15em 0.18em rgb(255 117 173 / 0.18));
+      0 0.055em 0 #fff0d6,
+      0.025em 0.045em 0 #f06fa2;
+    filter: none;
     transform: translateY(-0.02em);
+  }
+
+  .habee-logo-text {
+    display: inline-block;
+    color: #ff9fc2;
+    font-family: "Arial Rounded MT Bold", "Cooper Black", "Trebuchet MS", var(--font-ui);
+    font-weight: 900;
+    letter-spacing: 0;
+    line-height: 0.92;
+    vertical-align: -0.03em;
+    -webkit-text-stroke: 0.032em #fffaf4;
+    paint-order: stroke fill;
+    -webkit-text-fill-color: #ff9fc2;
+    text-shadow:
+      0 0.05em 0 #fff0d6,
+      0.022em 0.04em 0 #f06fa2;
+    filter: none;
   }
 
   .brand-script {

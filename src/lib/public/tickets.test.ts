@@ -113,7 +113,7 @@ describe("ticket creation", () => {
     expect(JSON.stringify(prisma.createdTickets)).toContain(hashAccessToken(result.accessToken));
   });
 
-  it("does not create tickets for paused rooms", async () => {
+  it("does not expose paused rooms for ticket creation", async () => {
     const prisma = makePrisma({
       room: {
         async findUnique() {
@@ -128,7 +128,7 @@ describe("ticket creation", () => {
         customerName: "Nguyen Van An",
         phone: "+84912345678",
       }),
-    ).rejects.toThrow("Phòng đang tạm dừng");
+    ).rejects.toThrow("Phòng không tồn tại.");
   });
 
   it("blocks one phone from having two active tickets", async () => {

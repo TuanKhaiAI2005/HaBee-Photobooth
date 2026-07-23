@@ -1,7 +1,7 @@
 import type { RoomStatus } from "@prisma/client";
 
 export function isPublicRoomStatus(status: RoomStatus): boolean {
-  return status === "ACTIVE" || status === "PAUSED";
+  return status === "ACTIVE";
 }
 
 export function canRegisterRoomStatus(status: RoomStatus): boolean {

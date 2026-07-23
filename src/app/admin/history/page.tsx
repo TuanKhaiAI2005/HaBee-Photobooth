@@ -1,5 +1,11 @@
 import Link from "next/link";
 import { AdminNav } from "@/app/admin/admin-nav";
+import { ConfirmForm } from "@/app/components/confirm-form";
+import {
+  deleteAllHistoryAction,
+  deleteHistoryByDateAction,
+  deleteHistoryTicketAction,
+} from "@/lib/admin/history-actions";
 import { requireAdmin } from "@/lib/auth/guards";
 import { listHistory } from "@/lib/admin/history";
 import { prisma } from "@/lib/prisma";
@@ -59,6 +65,27 @@ export default async function AdminHistoryPage({ searchParams }: HistoryPageProp
         <Link className="photo-button-secondary" href="/admin/history">Xóa bộ lọc</Link>
       </form>
 
+      <section className="photo-card-soft grid gap-4 lg:grid-cols-2">
+        <ConfirmForm
+          action={deleteHistoryByDateAction}
+          className="grid gap-3 sm:grid-cols-[1fr_auto]"
+          confirmMessage="Xóa vĩnh viễn tất cả lịch sử đã kết thúc trong ngày này? Thao tác này không thể hoàn tác."
+          pendingLabel="Đang xóa..."
+          submitLabel="Xóa lịch sử ngày"
+        >
+          <input className="photo-input" defaultValue={data.filters.from ?? ""} name="date" type="date" />
+        </ConfirmForm>
+        <ConfirmForm
+          action={deleteAllHistoryAction}
+          className="flex flex-wrap items-center gap-3 lg:justify-end"
+          confirmMessage="Xóa vĩnh viễn tất cả lịch sử đã kết thúc? Thao tác này không thể hoàn tác."
+          pendingLabel="Đang xóa..."
+          submitLabel="Xóa tất cả lịch sử"
+        >
+          <span className="text-sm text-[var(--color-muted-text)]">Chỉ xóa vé đã hoàn tất, đã hủy hoặc vắng mặt.</span>
+        </ConfirmForm>
+      </section>
+
       <section className="photo-card-soft">
         {data.tickets.length === 0 ? (
           <p className="text-sm text-[var(--color-muted-text)]">Không có lịch sử phù hợp bộ lọc.</p>
@@ -83,6 +110,15 @@ export default async function AdminHistoryPage({ searchParams }: HistoryPageProp
                   <div><dt className="font-bold">Thời lượng</dt><dd>{ticket.duration}</dd></div>
                   <div><dt className="font-bold">Trạng thái cuối</dt><dd>{ticketStatusLabel(ticket.status)}</dd></div>
                 </dl>
+                <ConfirmForm
+                  action={deleteHistoryTicketAction}
+                  className="mt-4 flex flex-wrap items-center gap-3"
+                  confirmMessage={`Xóa vĩnh viễn lịch sử ${ticket.ticketCode}? Thao tác này không thể hoàn tác.`}
+                  pendingLabel="Đang xóa..."
+                  submitLabel="Xóa lịch sử"
+                >
+                  <input name="id" type="hidden" value={ticket.id} />
+                </ConfirmForm>
               </article>
             ))}
           </div>

@@ -1,7 +1,7 @@
 ﻿"use client";
 
 import { useActionState } from "react";
-import { BrandMark } from "@/app/components/brand-mark";
+import { BrandMark, HaBeeLogoText } from "@/app/components/brand-mark";
 import type { LoginActionState } from "@/lib/auth/actions";
 
 type LoginFormProps = {
@@ -22,7 +22,7 @@ export function LoginForm({ action, fieldName, fieldLabel, heading, passwordLabe
       <form action={formAction} className="photo-card habee-decor grid w-full max-w-md gap-4">
         <div>
           <BrandMark compact />
-          <p className="photo-badge mt-4">HaBee access</p>
+          <p className="photo-badge mt-4"><HaBeeLogoText /> access</p>
         </div>
         <h1 className="text-3xl font-black text-[var(--color-ink)]">{heading}</h1>
         <label className="grid gap-2 text-sm font-medium text-[var(--color-navy)]">
