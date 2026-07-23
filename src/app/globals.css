@@ -161,11 +161,7 @@ body::before {
   }
 
   .admin-overview-brand .brand-mark {
-    margin-top: 1.1rem;
-  }
-
-  .admin-overview-brand .brand-bubble {
-    font-size: clamp(3.1rem, 7vw, 5.4rem);
+    margin-top: 0;
   }
 
   .admin-status-pill {

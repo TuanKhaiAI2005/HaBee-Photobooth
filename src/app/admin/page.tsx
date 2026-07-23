@@ -51,7 +51,6 @@ export default async function AdminPage() {
       <AdminNav />
       <section className="photo-card admin-overview-card habee-decor">
         <div className="admin-overview-brand">
-          <p className="photo-badge">Admin studio</p>
           <BrandMark />
         </div>
         <div className="admin-overview-content">
