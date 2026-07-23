@@ -98,7 +98,7 @@ export default async function AdminHistoryPage({ searchParams }: HistoryPageProp
                     <p className="text-lg font-black">{ticket.ticketCode} - {ticket.customerName}</p>
                     <p className="break-words text-sm text-[var(--color-muted-text)]">Số điện thoại: {ticket.normalizedPhone}</p>
                   </div>
-                  <span className="rounded border border-[var(--color-navy)] px-2 py-1 text-xs font-bold" style={{ backgroundColor: ticket.roomColor }}>
+                  <span className="rounded border border-[var(--color-navy)] px-2 py-1 text-xs font-bold">
                     {ticket.roomName}
                   </span>
                 </div>

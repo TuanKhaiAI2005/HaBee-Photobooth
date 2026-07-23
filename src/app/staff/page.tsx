@@ -6,6 +6,7 @@ import { QueueTimer } from "@/app/components/queue-timer";
 import { listStaffRooms } from "@/lib/queue/read-models";
 import { roomStatusLabel } from "@/lib/labels";
 import { QueueConnectionIndicator } from "@/app/components/connection-indicator";
+import { AutoCallWatcher } from "@/app/components/auto-call-watcher";
 import { BrandMark } from "@/app/components/brand-mark";
 
 export default async function StaffPage() {
@@ -14,6 +15,7 @@ export default async function StaffPage() {
 
   return (
     <main className="photo-shell">
+      <AutoCallWatcher roomIds={queue.rooms.map((room) => room.id)} />
       <section className="photo-card">
         <BrandMark compact />
         <p className="photo-badge mt-4">Nhân viên</p>
@@ -28,12 +30,9 @@ export default async function StaffPage() {
         <div className="mt-4 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
           {queue.rooms.map((room) => (
             <Link className="grid min-h-56 gap-4 rounded-lg border-2 border-[var(--color-navy)] bg-[var(--color-surface)] p-4 shadow-[3px_3px_0_var(--color-navy)]" href={`/staff/rooms/${room.id}`} key={room.id}>
-              <span className="flex items-start justify-between gap-3">
-                <span>
-                  <span className="block text-2xl font-black">{room.name}</span>
-                  <span className="photo-badge mt-2">{roomStatusLabel(room.status)}</span>
-                </span>
-                <span className="h-11 w-11 shrink-0 rounded-lg border-2 border-[var(--color-navy)]" style={{ background: room.color }} />
+              <span>
+                <span className="block text-2xl font-black">{room.name}</span>
+                <span className="photo-badge mt-2">{roomStatusLabel(room.status)}</span>
               </span>
               <span className="grid grid-cols-2 gap-3 text-sm">
                 <span className="photo-stat">
@@ -45,7 +44,7 @@ export default async function StaffPage() {
                   <span className="font-black">{room.hasCalled ? "Có khách" : "Chưa gọi"}</span>
                 </span>
               </span>
-              <span className="photo-stat bg-[var(--color-pink)] text-[var(--color-cream)] photo-on-highlight">
+              <span className="photo-stat bg-[var(--color-cream)]">
                 <span className="block text-xs font-bold uppercase text-[var(--color-muted-text)]">Đồng hồ phòng</span>
                 <span className="text-2xl font-black">
                   <QueueTimer expectedEndAt={room.inService?.expectedEndAt ?? null} serverNow={queue.serverNow} />

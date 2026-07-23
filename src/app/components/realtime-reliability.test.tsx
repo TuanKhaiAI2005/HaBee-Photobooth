@@ -289,6 +289,28 @@ describe("QueueConnectionIndicator realtime reliability", () => {
 });
 
 describe("CalledNotification duplicate protection", () => {
+  function mockNotificationAudio() {
+    const play = vi.fn(() => Promise.resolve());
+    const pause = vi.fn();
+    const createdSources: string[] = [];
+
+    class AudioMock {
+      currentTime = 0;
+      loop = false;
+
+      constructor(src: string) {
+        createdSources.push(src);
+      }
+
+      play = play;
+      pause = pause;
+    }
+
+    Object.defineProperty(globalThis, "Audio", { configurable: true, value: AudioMock });
+
+    return { createdSources, pause, play };
+  }
+
   beforeEach(() => {
     vi.useFakeTimers();
     localStorage.setItem("photoSoundEnabled", "1");
@@ -302,23 +324,11 @@ describe("CalledNotification duplicate protection", () => {
     localStorage.clear();
     document.body.innerHTML = "";
     Reflect.deleteProperty(window, "AudioContext");
+    Reflect.deleteProperty(globalThis, "Audio");
   });
 
   it("does not replay a CALLED notification for the same ticket and calledAt during recovery rerenders", async () => {
-    const oscillatorStart = vi.fn();
-    class AudioContextMock {
-      currentTime = 0;
-      createOscillator() {
-        return { frequency: { value: 0 }, connect: vi.fn(), start: oscillatorStart, stop: vi.fn() };
-      }
-      createGain() {
-        return { gain: { value: 0 }, connect: vi.fn() };
-      }
-      get destination() {
-        return {};
-      }
-    }
-    Object.defineProperty(window, "AudioContext", { configurable: true, value: AudioContextMock });
+    const audio = mockNotificationAudio();
 
     const ticket = {
       id: "ticket-1",
@@ -335,7 +345,50 @@ describe("CalledNotification duplicate protection", () => {
       document.dispatchEvent(new Event("visibilitychange"));
     });
 
-    expect(oscillatorStart).toHaveBeenCalledTimes(2);
+    expect(audio.createdSources).toEqual(["/nhachuong.mp3"]);
+    expect(audio.play).toHaveBeenCalledTimes(1);
+    await view.unmount();
+  });
+
+  it("does not play customer alert audio in admin mode", async () => {
+    const audio = mockNotificationAudio();
+
+    const ticket = {
+      id: "ticket-1",
+      ticketCode: "A001",
+      roomId: "room-1",
+      roomName: "Phòng 1",
+      customerName: "Nguyen Van An",
+      normalizedPhone: "+84912345678",
+      calledAt: "2026-07-17T10:25:14.000Z",
+    };
+
+    const view = await render(<CalledNotification mode="admin" ticket={ticket} />);
+
+    expect(audio.play).not.toHaveBeenCalled();
+    await view.unmount();
+  });
+
+  it("stops customer alert audio after ten seconds", async () => {
+    const audio = mockNotificationAudio();
+    const ticket = {
+      id: "ticket-1",
+      ticketCode: "A001",
+      roomId: "room-1",
+      roomName: "Phòng 1",
+      calledAt: "2026-07-17T10:25:14.000Z",
+    };
+
+    const view = await render(<CalledNotification mode="customer" ticket={ticket} />);
+
+    expect(audio.play).toHaveBeenCalledTimes(1);
+    expect(audio.pause).not.toHaveBeenCalled();
+
+    await act(async () => {
+      vi.advanceTimersByTime(10_000);
+    });
+
+    expect(audio.pause).toHaveBeenCalledTimes(1);
     await view.unmount();
   });
 });

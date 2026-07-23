@@ -4,6 +4,7 @@ import { requireAdmin } from "@/lib/auth/guards";
 import { AdminNav } from "@/app/admin/admin-nav";
 import { ConfirmForm } from "@/app/components/confirm-form";
 import { QueueConnectionIndicator } from "@/app/components/connection-indicator";
+import { AutoCallWatcher } from "@/app/components/auto-call-watcher";
 import { createRoomAction, deleteRoomAction, pauseRoomAction, updateRoomAction } from "@/lib/admin/room-actions";
 import { roomStatusLabel } from "@/lib/labels";
 import { createQrPngDataUrl, getJoinPublicUrl } from "@/lib/public/qr";
@@ -52,6 +53,7 @@ export default async function AdminRoomsPage() {
     <main className="photo-shell">
       <AdminNav />
       <QueueConnectionIndicator mode="admin" />
+      <AutoCallWatcher roomIds={rooms.map((room) => room.id)} />
       <section className="photo-card">
         <p className="photo-badge">Quản lý phòng</p>
         <h1 className="mt-3 text-4xl font-black text-[var(--color-navy)]">Phòng photobooth</h1>
@@ -83,18 +85,15 @@ export default async function AdminRoomsPage() {
         <h2 className="text-2xl font-black">Thêm phòng</h2>
         <ConfirmForm
           action={createRoomAction}
-          className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-5"
+          className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-4"
           confirmMessage="Xác nhận thêm phòng mới?"
           pendingLabel="Đang thêm..."
           submitLabel="Thêm phòng"
         >
+          <input name="color" type="hidden" value="#001858" />
           <label className="grid gap-2 text-sm font-medium">
             Tên phòng
             <input className="photo-input" name="name" required />
-          </label>
-          <label className="grid gap-2 text-sm font-medium">
-            Màu
-            <input className="h-11 rounded-lg border-2 border-[var(--color-navy)] px-2" name="color" type="color" defaultValue="#001858" />
           </label>
           <label className="grid gap-2 text-sm font-medium">
             Thời lượng phút
@@ -167,7 +166,7 @@ export default async function AdminRoomsPage() {
                   ) : calledTicket ? (
                     <dd className="mt-2 grid gap-1">
                       <span className="text-lg font-black text-[var(--color-primary-deep)]">{calledTicket.ticketCode} - {calledTicket.customerName}</span>
-                      <span className="text-sm font-bold text-[var(--color-muted-text)]">Đã gọi, chờ khách xác nhận</span>
+                      <span className="text-sm font-bold text-[var(--color-muted-text)]">Đã gọi, chờ khách vào phòng</span>
                     </dd>
                   ) : (
                     <dd className="mt-1 text-lg font-black text-[var(--color-muted-text)]">Chưa có khách</dd>
@@ -182,19 +181,16 @@ export default async function AdminRoomsPage() {
               </dl>
               <ConfirmForm
                 action={updateRoomAction}
-                className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-5"
+                className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-4"
                 confirmMessage={`Xác nhận cập nhật ${room.name}? Public token sẽ được giữ nguyên.`}
                 pendingLabel="Đang lưu..."
                 submitLabel="Lưu thay đổi"
               >
                 <input name="id" type="hidden" value={room.id} />
+                <input name="color" type="hidden" value={room.color} />
                 <label className="grid gap-2 text-sm font-medium">
                   Tên phòng
                   <input className="photo-input" name="name" required defaultValue={room.name} />
-                </label>
-                <label className="grid gap-2 text-sm font-medium">
-                  Màu
-                  <input className="h-11 rounded-lg border-2 border-[var(--color-navy)] px-2" name="color" type="color" defaultValue={room.color} />
                 </label>
                 <label className="grid gap-2 text-sm font-medium">
                   Thời lượng phút

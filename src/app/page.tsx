@@ -30,6 +30,9 @@ export default function Home() {
             <Link className="photo-button-secondary" href="/admin">
               Quản lý
             </Link>
+            <Link className="photo-button-secondary" href="/staff">
+              Nhân viên
+            </Link>
           </div>
         </div>
 

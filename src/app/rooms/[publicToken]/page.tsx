@@ -1,4 +1,5 @@
 ﻿import { notFound } from "next/navigation";
+import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { getPublicRoomDetail } from "@/lib/public/tickets";
 import { QueueRealtimeRefetch } from "@/app/components/queue-realtime-refetch";
@@ -22,13 +23,17 @@ export default async function PublicRoomDetailPage({ params }: PublicRoomDetailP
   return (
     <main className="photo-shell">
       <QueueRealtimeRefetch mode="public" roomId={detail.room.id} />
-      <section className="photo-card grid gap-5 md:grid-cols-[1fr_auto] md:items-center">
-        <div>
-          <p className="photo-badge">Đăng ký hàng đợi</p>
-          <h1 className="mt-3 text-4xl font-black text-[var(--color-navy)]">{detail.room.name}</h1>
-          <p className="mt-2 text-[var(--color-muted-text)]">Trạng thái phòng: {roomStatusLabel(detail.room.status)}</p>
+      <section className="photo-card">
+        <div className="flex flex-wrap items-start justify-between gap-4">
+          <div>
+            <p className="photo-badge">Đăng ký hàng đợi</p>
+            <h1 className="mt-3 text-4xl font-black text-[var(--color-navy)]">{detail.room.name}</h1>
+            <p className="mt-2 text-[var(--color-muted-text)]">Trạng thái phòng: {roomStatusLabel(detail.room.status)}</p>
+          </div>
+          <Link className="photo-button-secondary" href="/rooms">
+            Xem phòng khác
+          </Link>
         </div>
-        <span className="h-16 w-16 rounded-lg border-2 border-[var(--color-navy)] shadow-[4px_4px_0_var(--color-navy)]" style={{ background: detail.room.color }} />
       </section>
 
       <section className="grid gap-3 sm:grid-cols-3">

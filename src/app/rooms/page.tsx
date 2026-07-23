@@ -12,7 +12,7 @@ export default async function PublicRoomsPage() {
   return (
     <main className="photo-shell">
       <QueueConnectionIndicator mode="public" />
-      <section className="photo-card habee-decor grid gap-5 md:grid-cols-[1fr_auto] md:items-center">
+      <section className="photo-card habee-decor">
         <div>
           <div className="public-room-brand-row">
             <BrandMark compact />
@@ -24,13 +24,6 @@ export default async function PublicRoomsPage() {
           <p className="mt-2 text-[var(--color-muted-text)]">
             Quét QR chung, nhập thông tin khách, chọn phòng bạn muốn chụp, lấy mã vé và theo dõi lượt của mình trên điện thoại.
           </p>
-        </div>
-        <div className="film-strip w-full md:w-44">
-          <div className="grid grid-cols-3 gap-2 bg-[var(--color-surface)] p-3 md:grid-cols-1">
-            <span className="h-12 rounded-lg border-2 border-[var(--color-navy)] bg-[var(--color-pink)]" />
-            <span className="h-12 rounded-lg border-2 border-[var(--color-navy)] bg-[var(--color-cream)]" />
-            <span className="h-12 rounded-lg border-2 border-[var(--color-navy)] bg-[var(--color-cream)]" />
-          </div>
         </div>
       </section>
 

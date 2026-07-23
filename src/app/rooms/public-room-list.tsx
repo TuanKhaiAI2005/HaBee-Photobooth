@@ -29,12 +29,9 @@ export function PublicRoomList({ rooms }: PublicRoomListProps) {
             <section className="grid gap-4 sm:grid-cols-2">
               {rooms.map((room) => (
                 <article className="photo-card" key={room.id}>
-                  <div className="flex items-start justify-between gap-3">
-                    <div>
-                      <h2 className="text-2xl font-black">{room.name}</h2>
-                      <p className="photo-badge mt-2">{roomStatusLabel(room.status)}</p>
-                    </div>
-                    <span className="h-10 w-10 rounded-lg border-2 border-[var(--color-navy)]" style={{ background: room.color }} />
+                  <div>
+                    <h2 className="text-2xl font-black">{room.name}</h2>
+                    <p className="photo-badge mt-2">{roomStatusLabel(room.status)}</p>
                   </div>
                   <dl className="mt-5 grid gap-3 text-sm text-[var(--color-navy)]">
                     <div className="photo-stat flex justify-between gap-3">

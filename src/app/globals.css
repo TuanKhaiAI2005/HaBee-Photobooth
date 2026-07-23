@@ -351,25 +351,6 @@ body::before {
     color: var(--color-muted);
   }
 
-  .film-strip {
-    border-color: rgb(255 255 255 / 0.85);
-    background:
-      linear-gradient(180deg, #ffffff, #fff0f6),
-      var(--color-surface);
-    box-shadow: var(--shadow-soft);
-    @apply relative overflow-hidden rounded-[2rem] border p-3;
-  }
-
-  .film-strip::before,
-  .film-strip::after {
-    content: "";
-    display: block;
-    height: 10px;
-    border-radius: 999px;
-    background-image: repeating-linear-gradient(90deg, var(--color-primary) 0 10px, transparent 10px 20px);
-    opacity: 0.42;
-  }
-
   .brand-mark {
     display: inline-grid;
     justify-items: center;

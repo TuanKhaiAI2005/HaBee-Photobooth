@@ -4,10 +4,9 @@ import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import { createTicket } from "@/lib/public/tickets";
-import { accessTokenSchema, createTicketSchema } from "@/lib/public/ticket-schemas";
+import { createTicketSchema } from "@/lib/public/ticket-schemas";
 import type { AdminActionState } from "@/lib/admin/action-state";
-import { actionError, actionOk } from "@/lib/admin/action-state";
-import { cancelTicketByToken, confirmArrivalByAccessToken } from "@/lib/queue/operations";
+import { actionError } from "@/lib/admin/action-state";
 
 export async function createTicketAction(
   _state: AdminActionState,
@@ -39,40 +38,20 @@ export async function createTicketAction(
 
 export async function cancelTicketAction(
   _state: AdminActionState,
-  formData: FormData,
+  _formData: FormData,
 ): Promise<AdminActionState> {
-  const parsed = accessTokenSchema.safeParse(formData.get("accessToken"));
-
-  if (!parsed.success) {
-    return actionError("Link vé không hợp lệ.");
-  }
-
-  try {
-    await cancelTicketByToken(prisma, parsed.data);
-    revalidatePath(`/ticket/${parsed.data}`);
-    return actionOk();
-  } catch {
-    return actionError("Không thể hủy vé.");
-  }
+  void _state;
+  void _formData;
+  return actionError("Khách không thể hủy vé. Vui lòng liên hệ nhân viên nếu cần hỗ trợ.");
 }
 
 export async function confirmArrivedAction(
   _state: AdminActionState,
-  formData: FormData,
+  _formData: FormData,
 ): Promise<AdminActionState> {
-  const parsed = accessTokenSchema.safeParse(formData.get("accessToken"));
-
-  if (!parsed.success) {
-    return actionError("Link vé không hợp lệ.");
-  }
-
-  try {
-    await confirmArrivalByAccessToken(prisma, parsed.data);
-    revalidatePath(`/ticket/${parsed.data}`);
-    return actionOk();
-  } catch (error) {
-    return actionError(error instanceof Error ? error.message : "Không thể xác nhận vào phòng.");
-  }
+  void _state;
+  void _formData;
+  return actionError("Khách không cần xác nhận vào phòng. Nhân viên sẽ thao tác khi đến lượt.");
 }
 
 

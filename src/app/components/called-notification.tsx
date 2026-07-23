@@ -21,58 +21,19 @@ type SoundHandle = {
   stop: () => void;
 };
 
-function playTone(context: AudioContext, startAt: number, frequency: number, duration: number): void {
-  const oscillator = context.createOscillator();
-  const gain = context.createGain();
-  const volume = gain.gain;
-
-  oscillator.type = "sine";
-  oscillator.frequency.value = frequency;
-  volume.value = 0.42;
-  if (volume.setValueAtTime && volume.exponentialRampToValueAtTime) {
-    volume.setValueAtTime(0.001, startAt);
-    volume.exponentialRampToValueAtTime(0.42, startAt + 0.04);
-    volume.setValueAtTime(0.42, startAt + duration - 0.12);
-    volume.exponentialRampToValueAtTime(0.001, startAt + duration);
-  }
-
-  oscillator.connect(gain);
-  gain.connect(context.destination);
-  oscillator.start(startAt);
-  oscillator.stop(startAt + duration);
-}
+const notificationSoundUrl = "/nhachuong.mp3";
+const notificationSoundDurationMs = 10_000;
 
 function startNotificationSound(): SoundHandle | null {
-  const AudioContextClass = window.AudioContext ?? window.webkitAudioContext;
-  if (!AudioContextClass) {
+  if (typeof Audio === "undefined") {
     return null;
   }
 
-  const context = new AudioContextClass();
+  const audio = new Audio(notificationSoundUrl);
   let stopped = false;
-  let elapsedMs = 0;
 
-  function playChime(): void {
-    if (stopped) {
-      return;
-    }
-
-    const now = context.currentTime;
-    playTone(context, now, 659, 0.55);
-    playTone(context, now + 0.58, 880, 0.72);
-  }
-
-  playChime();
-  const intervalId = window.setInterval(() => {
-    elapsedMs += 1800;
-    if (elapsedMs >= 15_000) {
-      stop();
-      return;
-    }
-
-    playChime();
-  }, 1800);
-  const timeoutId = window.setTimeout(() => stop(), 15_000);
+  audio.loop = true;
+  audio.currentTime = 0;
 
   function stop(): void {
     if (stopped) {
@@ -80,10 +41,13 @@ function startNotificationSound(): SoundHandle | null {
     }
 
     stopped = true;
-    window.clearInterval(intervalId);
     window.clearTimeout(timeoutId);
-    void context.close?.();
+    audio.pause();
+    audio.currentTime = 0;
   }
+
+  const timeoutId = window.setTimeout(() => stop(), notificationSoundDurationMs);
+  void audio.play().catch(() => stop());
 
   return { stop };
 }
@@ -117,15 +81,16 @@ function showBrowserNotification(ticket: CalledTicket, mode: "admin" | "customer
 }
 
 export function CalledNotification({ ticket, mode }: CalledNotificationProps) {
+  const isCustomerMode = mode === "customer";
   const [soundEnabled, setSoundEnabled] = useState(() => {
-    if (typeof window === "undefined") {
+    if (!isCustomerMode || typeof window === "undefined") {
       return false;
     }
 
     return localStorage.getItem("photoSoundEnabled") === "1";
   });
   const [notificationPermission, setNotificationPermission] = useState<NotificationPermission | "unsupported">(() => {
-    if (typeof window === "undefined") {
+    if (!isCustomerMode || typeof window === "undefined") {
       return "unsupported";
     }
 
@@ -145,15 +110,15 @@ export function CalledNotification({ ticket, mode }: CalledNotificationProps) {
     seenRef.current.add(eventKey);
     setVisibleTicket(ticket);
 
-    if (mode === "customer" && "vibrate" in navigator) {
+    if (isCustomerMode && "vibrate" in navigator) {
       navigator.vibrate?.([160, 80, 160]);
     }
 
-    if (mode === "customer") {
+    if (isCustomerMode) {
       showBrowserNotification(ticket, mode);
     }
 
-    if (mode === "customer" && soundEnabled) {
+    if (isCustomerMode && soundEnabled) {
       try {
         soundRef.current?.stop();
         soundRef.current = startNotificationSound();
@@ -161,7 +126,7 @@ export function CalledNotification({ ticket, mode }: CalledNotificationProps) {
         // Browser autoplay/audio failures are intentionally ignored.
       }
     }
-  }, [eventKey, mode, soundEnabled, ticket]);
+  }, [eventKey, isCustomerMode, mode, soundEnabled, ticket]);
 
   useEffect(() => {
     if (!ticket) {
@@ -176,6 +141,10 @@ export function CalledNotification({ ticket, mode }: CalledNotificationProps) {
   }, [ticket]);
 
   async function toggleSound(enabled: boolean): Promise<void> {
+    if (!isCustomerMode) {
+      return;
+    }
+
     localStorage.setItem("photoSoundEnabled", enabled ? "1" : "0");
     setSoundEnabled(enabled);
 
@@ -206,7 +175,7 @@ export function CalledNotification({ ticket, mode }: CalledNotificationProps) {
 
   return (
     <>
-      {mode === "customer" ? (
+      {isCustomerMode ? (
         <div className="photo-card-soft flex flex-wrap items-center gap-3" aria-live="polite">
           <span className="text-sm font-bold">Am thanh thong bao</span>
           <button className={soundEnabled ? "photo-button-secondary" : "photo-button"} onClick={() => toggleSound(!soundEnabled)} type="button">
@@ -227,7 +196,7 @@ export function CalledNotification({ ticket, mode }: CalledNotificationProps) {
           {mode === "admin" ? (
             <p className="text-sm">{visibleTicket.customerName} - {visibleTicket.normalizedPhone}</p>
           ) : (
-            <p className="text-sm">Vui long di chuyen vao dung phong va bam xac nhan khi ban da vao phong.</p>
+            <p className="text-sm">Vui long di chuyen vao dung phong khi den luot.</p>
           )}
           <div className="mt-3 flex flex-wrap gap-2">
             <button className="photo-button" onClick={dismissNotification} type="button">
@@ -238,10 +207,4 @@ export function CalledNotification({ ticket, mode }: CalledNotificationProps) {
       ) : null}
     </>
   );
-}
-
-declare global {
-  interface Window {
-    webkitAudioContext?: typeof AudioContext;
-  }
 }

@@ -5,8 +5,6 @@ import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { getTicketByAccessToken } from "@/lib/public/tickets";
 import { accessTokenSchema } from "@/lib/public/ticket-schemas";
-import { cancelTicketAction, confirmArrivedAction } from "@/lib/public/actions";
-import { ConfirmForm } from "@/app/components/confirm-form";
 import { QueueTimer } from "@/app/components/queue-timer";
 import { QueueRealtimeRefetch } from "@/app/components/queue-realtime-refetch";
 import { CalledNotification } from "@/app/components/called-notification";
@@ -55,13 +53,13 @@ export default async function TicketPage({ params }: TicketPageProps) {
         <BrandMark compact />
         <p className="photo-badge mt-4">Vé hàng đợi của bạn</p>
         <h1 className="mt-4 break-words text-4xl font-black text-[var(--color-navy)]">{ticket.ticketCode}</h1>
-        <p className="mt-2 text-[var(--color-muted-text)]">Giữ trang này để theo dõi lượt và xác nhận khi được gọi.</p>
+        <p className="mt-2 text-[var(--color-muted-text)]">Giữ trang này để theo dõi lượt của bạn.</p>
         <dl className="mt-6 grid gap-3 text-sm text-[var(--color-navy)] sm:grid-cols-2">
           <div className="photo-stat">
             <dt className="text-xs font-bold uppercase text-[var(--color-muted-text)]">Phòng</dt>
             <dd className="mt-1 text-xl font-black">{ticket.roomName}</dd>
           </div>
-          <div className="photo-stat bg-[var(--color-pink)] text-[var(--color-cream)] photo-on-highlight">
+          <div className="photo-stat bg-[var(--color-cream)]">
             <dt className="text-xs font-bold uppercase text-[var(--color-muted-text)]">Trạng thái</dt>
             <dd className="mt-1 text-xl font-black">{ticketStatusLabel(ticket.status)}</dd>
           </div>
@@ -84,54 +82,6 @@ export default async function TicketPage({ params }: TicketPageProps) {
           Xem phòng
         </Link>
       </section>
-
-      {ticket.canConfirmArrival ? (
-        <section className="photo-card">
-          <h2 className="text-3xl font-black text-[var(--color-primary-deep)]">Đã tới lượt của bạn</h2>
-          <p className="mt-2 text-sm text-[var(--color-muted-text)]">
-            Vé {ticket.ticketCode} được gọi vào phòng {ticket.roomName}. Vui lòng đi vào đúng phòng và bấm xác nhận khi bạn đã vào phòng chụp.
-          </p>
-          {ticket.arrivalConfirmedAt ? (
-            <p className="photo-badge mt-4">Bạn đã xác nhận với quầy</p>
-          ) : (
-            <div className="mt-4 grid gap-3 sm:grid-cols-2">
-              <ConfirmForm
-                action={confirmArrivedAction}
-                className="grid gap-3"
-                confirmMessage="Xác nhận bạn đã vào phòng?"
-                pendingLabel="Đang xác nhận..."
-                submitLabel="Tôi đã vào phòng"
-              >
-                <input name="accessToken" type="hidden" value={accessToken} />
-              </ConfirmForm>
-              <ConfirmForm
-                action={cancelTicketAction}
-                className="grid gap-3"
-                confirmMessage="Xác nhận hủy vé của bạn?"
-                pendingLabel="Đang hủy..."
-                submitLabel="Hủy vé"
-              >
-                <input name="accessToken" type="hidden" value={accessToken} />
-              </ConfirmForm>
-            </div>
-          )}
-        </section>
-      ) : null}
-
-      {ticket.canCancel && !ticket.canConfirmArrival ? (
-        <section className="photo-card-soft">
-          <h2 className="text-2xl font-black">Hủy vé</h2>
-          <ConfirmForm
-            action={cancelTicketAction}
-            className="mt-4 grid gap-3"
-            confirmMessage="Xác nhận hủy vé của bạn?"
-            pendingLabel="Đang hủy..."
-            submitLabel="Hủy vé"
-          >
-            <input name="accessToken" type="hidden" value={accessToken} />
-          </ConfirmForm>
-        </section>
-      ) : null}
     </main>
   );
 }

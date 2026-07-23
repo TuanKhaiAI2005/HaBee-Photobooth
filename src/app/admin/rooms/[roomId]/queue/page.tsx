@@ -7,6 +7,7 @@ import { ConfirmForm } from "@/app/components/confirm-form";
 import { QueueRealtimeRefetch } from "@/app/components/queue-realtime-refetch";
 import { QueueTimer } from "@/app/components/queue-timer";
 import { CalledNotification } from "@/app/components/called-notification";
+import { AutoCallWatcher } from "@/app/components/auto-call-watcher";
 import { getAdminRoomQueue, type AdminQueueTicket } from "@/lib/queue/read-models";
 import { roomStatusLabel, ticketStatusLabel } from "@/lib/labels";
 import { formatVietnamDateTime } from "@/lib/timezone";
@@ -38,22 +39,6 @@ function TicketIdentity({ ticket, masked = false }: { ticket: AdminQueueTicket; 
   );
 }
 
-function CustomerConfirmationStatus({ ticket }: { ticket: AdminQueueTicket }) {
-  if (ticket.status === "CANCELLED") {
-    return <p className="photo-badge mt-2">Khách đã hủy vé</p>;
-  }
-
-  if (ticket.status === "NO_SHOW") {
-    return <p className="photo-badge mt-2">Khách không đến</p>;
-  }
-
-  return (
-    <p className="photo-badge mt-2">
-      {ticket.arrivalConfirmedAt ? "Khách đã xác nhận" : "Khách chưa xác nhận"}
-    </p>
-  );
-}
-
 function CallNextForm({ roomId }: { roomId: string }) {
   return (
     <ConfirmForm
@@ -80,6 +65,7 @@ export default async function AdminRoomQueuePage({ params }: AdminQueuePageProps
   return (
     <main className="photo-shell">
       <QueueRealtimeRefetch roomId={view.room.id} />
+      <AutoCallWatcher roomIds={[view.room.id]} />
       <AdminNav />
       <CalledNotification
         mode="admin"
@@ -107,7 +93,7 @@ export default async function AdminRoomQueuePage({ params }: AdminQueuePageProps
             <dt className="text-xs font-bold uppercase text-[var(--color-muted-text)]">Ước tính chờ</dt>
             <dd className="mt-1 text-2xl font-black">{view.estimatedWaitingMinutes} phút</dd>
           </div>
-          <div className="photo-stat bg-[var(--color-pink)] text-[var(--color-cream)] photo-on-highlight">
+          <div className="photo-stat bg-[var(--color-cream)]">
             <dt className="text-xs font-bold uppercase text-[var(--color-muted-text)]">Đồng hồ</dt>
             <dd className="mt-1 text-2xl font-black">
               <QueueTimer expectedEndAt={view.inService?.expectedEndAt ?? null} serverNow={view.serverNow} />
@@ -140,10 +126,9 @@ export default async function AdminRoomQueuePage({ params }: AdminQueuePageProps
         <div className="photo-card-soft">
           <h2 className="text-2xl font-black">Đã gọi</h2>
           {view.called ? (
-            <div className="mt-4 grid gap-4">
-              <TicketIdentity ticket={view.called} />
-              <CustomerConfirmationStatus ticket={view.called} />
-              <div className="grid gap-3 sm:grid-cols-3">
+              <div className="mt-4 grid gap-4">
+                <TicketIdentity ticket={view.called} />
+                <div className="grid gap-3 sm:grid-cols-3">
                 <ConfirmForm action={startServiceAction} className="grid gap-2" confirmMessage="Xác nhận khách vào phòng?" submitLabel="Vào phòng">
                   <input name="ticketId" type="hidden" value={view.called.id} />
                 </ConfirmForm>

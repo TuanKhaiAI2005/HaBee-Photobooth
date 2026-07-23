@@ -2,10 +2,10 @@
 
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
-import { requireAdmin } from "@/lib/auth/guards";
+import { requireStaffOrAdmin } from "@/lib/auth/guards";
 import { actionError, actionOk, type AdminActionState } from "@/lib/admin/action-state";
 import { queueTicketActionSchema, reorderTicketSchema, roomQueueActionSchema } from "@/lib/admin/queue-schemas";
-import { callNextTicket, cancelTicket, checkoutTicket, markTicketNoShow, moveWaitingTicket, startServiceForTicket } from "@/lib/queue/operations";
+import { autoCallNextTicketNearServiceEnd, callNextTicket, cancelTicket, checkoutTicket, markTicketNoShow, moveWaitingTicket, startServiceForTicket } from "@/lib/queue/operations";
 
 function revalidateQueuePaths(roomId?: string): void {
   revalidatePath("/admin");
@@ -21,7 +21,7 @@ export async function callNextTicketAction(
   _state: AdminActionState,
   formData: FormData,
 ): Promise<AdminActionState> {
-  await requireAdmin();
+  await requireStaffOrAdmin();
   const parsed = roomQueueActionSchema.safeParse({ roomId: formData.get("roomId") });
 
   if (!parsed.success) {
@@ -41,7 +41,7 @@ export async function startServiceAction(
   _state: AdminActionState,
   formData: FormData,
 ): Promise<AdminActionState> {
-  await requireAdmin();
+  await requireStaffOrAdmin();
   const parsed = queueTicketActionSchema.safeParse({ ticketId: formData.get("ticketId") });
 
   if (!parsed.success) {
@@ -61,7 +61,7 @@ export async function checkoutTicketAction(
   _state: AdminActionState,
   formData: FormData,
 ): Promise<AdminActionState> {
-  await requireAdmin();
+  await requireStaffOrAdmin();
   const parsed = queueTicketActionSchema.safeParse({ ticketId: formData.get("ticketId") });
 
   if (!parsed.success) {
@@ -85,7 +85,7 @@ export async function cancelTicketAction(
   _state: AdminActionState,
   formData: FormData,
 ): Promise<AdminActionState> {
-  await requireAdmin();
+  await requireStaffOrAdmin();
   const parsed = queueTicketActionSchema.safeParse({ ticketId: formData.get("ticketId") });
 
   if (!parsed.success) {
@@ -105,7 +105,7 @@ export async function noShowTicketAction(
   _state: AdminActionState,
   formData: FormData,
 ): Promise<AdminActionState> {
-  await requireAdmin();
+  await requireStaffOrAdmin();
   const parsed = queueTicketActionSchema.safeParse({ ticketId: formData.get("ticketId") });
 
   if (!parsed.success) {
@@ -125,7 +125,7 @@ export async function reorderWaitingTicketAction(
   _state: AdminActionState,
   formData: FormData,
 ): Promise<AdminActionState> {
-  await requireAdmin();
+  await requireStaffOrAdmin();
   const parsed = reorderTicketSchema.safeParse({
     ticketId: formData.get("ticketId"),
     direction: formData.get("direction"),
@@ -141,6 +141,25 @@ export async function reorderWaitingTicketAction(
     return actionOk();
   } catch (error) {
     return actionError(error instanceof Error ? error.message : undefined);
+  }
+}
+
+export async function autoCallNearServiceEndAction(roomIds: string[]): Promise<void> {
+  await requireStaffOrAdmin();
+
+  const validRoomIds = [...new Set(roomIds)]
+    .map((roomId) => roomQueueActionSchema.safeParse({ roomId }))
+    .filter((result) => result.success)
+    .map((result) => result.data.roomId);
+
+  const results = await Promise.allSettled(
+    validRoomIds.map((roomId) => autoCallNextTicketNearServiceEnd(prisma, roomId)),
+  );
+
+  for (const result of results) {
+    if (result.status === "fulfilled" && result.value.calledTicketId) {
+      revalidateQueuePaths(result.value.roomId);
+    }
   }
 }
 

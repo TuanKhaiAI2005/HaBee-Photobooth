@@ -8,6 +8,7 @@ type TransactionHost = PrismaClient | Prisma.TransactionClient;
 export type ActorType = "ADMIN" | "CUSTOMER";
 
 const roomOperationalStatuses = ["ACTIVE", "PAUSED"] as const;
+const preCallThresholdMs = 2 * 60 * 1000;
 
 function isRetryable(error: unknown): boolean {
   return error instanceof Prisma.PrismaClientKnownRequestError && (error.code === "P2002" || error.code === "P2034");
@@ -83,6 +84,64 @@ export async function callNextTicket(prisma: PrismaClient, roomId: string) {
 
     await createEvent(tx, roomId, updated.id, "TICKET_CALLED");
     return updated;
+  });
+}
+
+export async function autoCallNextTicketNearServiceEnd(
+  prisma: PrismaClient,
+  roomId: string,
+  now = new Date(),
+) {
+  return withSerializableRetry(prisma, async (tx) => {
+    await ensureRoomCanOperate(tx, roomId);
+
+    const inService = await tx.queueTicket.findFirst({
+      where: {
+        roomId,
+        status: "IN_SERVICE",
+        expectedEndAt: { not: null },
+      },
+      select: {
+        id: true,
+        expectedEndAt: true,
+      },
+    });
+
+    if (!inService?.expectedEndAt) {
+      return { calledTicketId: null, roomId };
+    }
+
+    const remainingMs = inService.expectedEndAt.getTime() - now.getTime();
+    if (remainingMs > preCallThresholdMs) {
+      return { calledTicketId: null, roomId };
+    }
+
+    const existingCalled = await tx.queueTicket.findFirst({
+      where: { roomId, status: "CALLED" },
+      select: { id: true },
+    });
+
+    if (existingCalled) {
+      return { calledTicketId: null, roomId };
+    }
+
+    const next = await tx.queueTicket.findFirst({
+      where: { roomId, status: "WAITING" },
+      orderBy: [{ queuePosition: "asc" }, { registeredAt: "asc" }],
+    });
+
+    if (!next) {
+      return { calledTicketId: null, roomId };
+    }
+
+    assertTicketTransition(next.status, "CALLED");
+    const called = await tx.queueTicket.update({
+      where: { id: next.id, status: "WAITING" },
+      data: { status: "CALLED", calledAt: now },
+    });
+
+    await createEvent(tx, roomId, called.id, "TICKET_AUTO_CALLED");
+    return { calledTicketId: called.id, roomId };
   });
 }
 

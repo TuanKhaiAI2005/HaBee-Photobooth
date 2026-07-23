@@ -2,7 +2,7 @@
 import { hashAccessToken, generateAccessToken } from "@/lib/security/token";
 import { maskName, maskPhone } from "@/lib/masking";
 import { canRegisterRoomStatus, isPublicRoomStatus } from "@/lib/public/room-access";
-import { activeTicketStatuses, cancellableTicketStatuses, estimateWaitingMinutes } from "@/lib/public/waiting-time";
+import { activeTicketStatuses, estimateWaitingMinutes } from "@/lib/public/waiting-time";
 import { generateTicketCode } from "@/lib/public/ticket-code";
 import type { CreateTicketInput } from "@/lib/public/ticket-schemas";
 
@@ -39,8 +39,6 @@ export type PublicTicketView = {
   serverNow: Date;
   peopleAhead: number;
   estimatedWaitingMinutes: number;
-  canCancel: boolean;
-  canConfirmArrival: boolean;
 };
 
 type PublicRoomWithTickets = Room & {
@@ -240,8 +238,6 @@ export async function getTicketByAccessToken(prisma: TransactionHost, accessToke
     serverNow: new Date(),
     peopleAhead,
     estimatedWaitingMinutes: estimateWaitingMinutes(peopleAhead, ticket.room.defaultDurationMinutes),
-    canCancel: cancellableTicketStatuses.includes(ticket.status),
-    canConfirmArrival: ticket.status === "CALLED",
   };
 }
 
