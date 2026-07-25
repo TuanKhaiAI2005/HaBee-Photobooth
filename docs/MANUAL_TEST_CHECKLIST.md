@@ -15,6 +15,7 @@ Chạy checklist này trên môi trường local hoặc staging sau khi đã mig
 - [ ] Admin tạo phòng mới tại `/admin/rooms`.
 - [ ] Admin tạo nhân viên tại `/admin/staff`.
 - [ ] Nhân viên đăng nhập tại `/staff/login`.
+- [ ] Nhân viên gọi khách, bắt đầu/hoàn tất lượt, hủy, đánh dấu vắng mặt và sắp xếp queue bằng dữ liệu đã che.
 - [ ] Admin mở trang QR phòng tại `/admin/rooms/[roomId]`.
 - [ ] Khách mở link QR `/rooms/[publicToken]`.
 - [ ] Khách đăng ký vé bằng tên và số điện thoại.
@@ -35,7 +36,9 @@ Chạy checklist này trên môi trường local hoặc staging sau khi đã mig
 
 - [ ] Public route không trả tên/SĐT đầy đủ của vé khác.
 - [ ] Staff route không trả tên/SĐT đầy đủ.
-- [ ] Staff không gọi được admin mutation.
+- [ ] Staff gọi được queue mutation nhưng không gọi được mutation quản trị phòng, tài khoản nhân viên hoặc lịch sử.
+- [ ] `Account`, `Room`, `QueueTicket`, `_prisma_migrations` không có privilege hiệu lực cho `anon`/`authenticated`.
+- [ ] `QueueEvent` chỉ có `SELECT` cho `anon`/`authenticated`; không có quyền ghi, truncate, trigger hoặc references.
 - [ ] Customer không hủy được ticket người khác nếu không có access token đúng.
 - [ ] Access token không lưu plain text, chỉ lưu `customerAccessTokenHash`.
 - [ ] Password không lưu plain text, chỉ lưu `passwordHash`.

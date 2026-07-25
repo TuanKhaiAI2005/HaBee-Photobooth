@@ -9,20 +9,20 @@ export function AdminNav() {
         <BrandMark compact />
       </Link>
       <Link className="photo-nav-link" href="/admin">
-        Tong quan
+        Tổng quan
       </Link>
       <Link className="photo-nav-link" href="/admin/rooms">
-        Phong
+        Phòng
       </Link>
       <Link className="photo-nav-link" href="/admin/staff">
-        Nhan vien
+        Nhân viên
       </Link>
       <Link className="photo-nav-link" href="/admin/history">
-        Lich su
+        Lịch sử
       </Link>
       <form action={logout} className="ml-auto">
         <button className="photo-nav-link" type="submit">
-          Dang xuat
+          Đăng xuất
         </button>
       </form>
     </nav>

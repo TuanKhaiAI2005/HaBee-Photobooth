@@ -56,23 +56,15 @@ function canUseBrowserNotifications(): boolean {
   return "Notification" in window;
 }
 
-function getNotificationPermission(): NotificationPermission | "unsupported" {
-  if (!canUseBrowserNotifications()) {
-    return "unsupported";
-  }
-
-  return Notification.permission;
-}
-
 function showBrowserNotification(ticket: CalledTicket, mode: "admin" | "customer"): void {
   if (!canUseBrowserNotifications() || Notification.permission !== "granted") {
     return;
   }
 
-  const title = mode === "admin" ? "Ve vua duoc goi" : "Da toi luot cua ban";
+  const title = mode === "admin" ? "Vé vừa được gọi" : "Đã tới lượt của bạn";
   const body = mode === "admin"
     ? `${ticket.ticketCode} - ${ticket.roomName}`
-    : `Ve ${ticket.ticketCode} duoc goi vao ${ticket.roomName}.`;
+    : `Vé ${ticket.ticketCode} được gọi vào ${ticket.roomName}.`;
 
   new Notification(title, {
     body,
@@ -82,20 +74,6 @@ function showBrowserNotification(ticket: CalledTicket, mode: "admin" | "customer
 
 export function CalledNotification({ ticket, mode }: CalledNotificationProps) {
   const isCustomerMode = mode === "customer";
-  const [soundEnabled, setSoundEnabled] = useState(() => {
-    if (!isCustomerMode || typeof window === "undefined") {
-      return false;
-    }
-
-    return localStorage.getItem("photoSoundEnabled") === "1";
-  });
-  const [notificationPermission, setNotificationPermission] = useState<NotificationPermission | "unsupported">(() => {
-    if (!isCustomerMode || typeof window === "undefined") {
-      return "unsupported";
-    }
-
-    return getNotificationPermission();
-  });
   const [visibleTicket, setVisibleTicket] = useState<CalledTicket | null>(null);
   const seenRef = useRef<Set<string>>(new Set());
   const soundRef = useRef<SoundHandle | null>(null);
@@ -118,7 +96,7 @@ export function CalledNotification({ ticket, mode }: CalledNotificationProps) {
       showBrowserNotification(ticket, mode);
     }
 
-    if (isCustomerMode && soundEnabled) {
+    if (isCustomerMode) {
       try {
         soundRef.current?.stop();
         soundRef.current = startNotificationSound();
@@ -126,7 +104,7 @@ export function CalledNotification({ ticket, mode }: CalledNotificationProps) {
         // Browser autoplay/audio failures are intentionally ignored.
       }
     }
-  }, [eventKey, isCustomerMode, mode, soundEnabled, ticket]);
+  }, [eventKey, isCustomerMode, mode, ticket]);
 
   useEffect(() => {
     if (!ticket) {
@@ -140,33 +118,6 @@ export function CalledNotification({ ticket, mode }: CalledNotificationProps) {
     };
   }, [ticket]);
 
-  async function toggleSound(enabled: boolean): Promise<void> {
-    if (!isCustomerMode) {
-      return;
-    }
-
-    localStorage.setItem("photoSoundEnabled", enabled ? "1" : "0");
-    setSoundEnabled(enabled);
-
-    if (enabled && canUseBrowserNotifications() && Notification.permission === "default") {
-      setNotificationPermission(await Notification.requestPermission());
-    } else {
-      setNotificationPermission(getNotificationPermission());
-    }
-
-    if (enabled) {
-      try {
-        soundRef.current?.stop();
-        soundRef.current = startNotificationSound();
-      } catch {
-        // The visible UI remains usable if the browser blocks audio.
-      }
-    } else {
-      soundRef.current?.stop();
-      soundRef.current = null;
-    }
-  }
-
   function dismissNotification(): void {
     soundRef.current?.stop();
     soundRef.current = null;
@@ -175,32 +126,19 @@ export function CalledNotification({ ticket, mode }: CalledNotificationProps) {
 
   return (
     <>
-      {isCustomerMode ? (
-        <div className="photo-card-soft flex flex-wrap items-center gap-3" aria-live="polite">
-          <span className="text-sm font-bold">Am thanh thong bao</span>
-          <button className={soundEnabled ? "photo-button-secondary" : "photo-button"} onClick={() => toggleSound(!soundEnabled)} type="button">
-            {soundEnabled ? "Tat am thanh" : "Bat am thanh thong bao"}
-          </button>
-          {notificationPermission !== "unsupported" ? (
-            <span className="text-xs font-bold text-[var(--color-muted-text)]">
-              {notificationPermission === "granted" ? "Thong bao may: da bat" : "Thong bao may: chua bat"}
-            </span>
-          ) : null}
-        </div>
-      ) : null}
       {visibleTicket ? (
         <div className="fixed inset-x-4 bottom-4 z-50 mx-auto max-w-md rounded-lg border-2 border-[var(--color-navy)] bg-[var(--color-surface)] p-4 text-[var(--color-navy)] shadow-[5px_5px_0_var(--color-navy)]" role="status">
-          <p className="text-xs font-black uppercase text-[var(--color-muted-text)]">{mode === "admin" ? "Ve vua duoc goi" : "Da toi luot cua ban"}</p>
+          <p className="text-xs font-black uppercase text-[var(--color-muted-text)]">{mode === "admin" ? "Vé vừa được gọi" : "Đã tới lượt của bạn"}</p>
           <h2 className="mt-1 text-2xl font-black">{visibleTicket.ticketCode}</h2>
-          <p className="mt-2 text-sm">Phong: <strong>{visibleTicket.roomName}</strong></p>
+          <p className="mt-2 text-sm">Phòng: <strong>{visibleTicket.roomName}</strong></p>
           {mode === "admin" ? (
             <p className="text-sm">{visibleTicket.customerName} - {visibleTicket.normalizedPhone}</p>
           ) : (
-            <p className="text-sm">Vui long di chuyen vao dung phong khi den luot.</p>
+            <p className="text-sm">Vui lòng di chuyển vào đúng phòng khi đến lượt.</p>
           )}
           <div className="mt-3 flex flex-wrap gap-2">
             <button className="photo-button" onClick={dismissNotification} type="button">
-              Da hieu
+              Đã hiểu
             </button>
           </div>
         </div>

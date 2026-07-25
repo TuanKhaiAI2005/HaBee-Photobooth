@@ -9,15 +9,29 @@ export type ActorType = "ADMIN" | "CUSTOMER";
 
 const roomOperationalStatuses = ["ACTIVE", "PAUSED"] as const;
 const preCallThresholdMs = 2 * 60 * 1000;
+const transactionMaxWaitMs = 10_000;
+const transactionTimeoutMs = 20_000;
 
 function isRetryable(error: unknown): boolean {
-  return error instanceof Prisma.PrismaClientKnownRequestError && (error.code === "P2002" || error.code === "P2034");
+  if (!(error instanceof Prisma.PrismaClientKnownRequestError)) {
+    return false;
+  }
+
+  if (error.code === "P2002" || error.code === "P2034") {
+    return true;
+  }
+
+  return error.code === "P2028" && error.message.includes("Transaction already closed");
 }
 
 async function withSerializableRetry<T>(prisma: PrismaClient, run: (tx: Prisma.TransactionClient) => Promise<T>): Promise<T> {
   for (let attempt = 0; attempt < 5; attempt += 1) {
     try {
-      return await prisma.$transaction(run, { isolationLevel: Prisma.TransactionIsolationLevel.Serializable });
+      return await prisma.$transaction(run, {
+        isolationLevel: Prisma.TransactionIsolationLevel.Serializable,
+        maxWait: transactionMaxWaitMs,
+        timeout: transactionTimeoutMs,
+      });
     } catch (error) {
       if (isRetryable(error) && attempt < 4) {
         continue;

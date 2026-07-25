@@ -7,10 +7,13 @@ Tài liệu này mô tả deploy thủ công lên Vercel + Supabase. Không tự
 1. Tạo Supabase project.
 2. Lấy connection string pooled cho `DATABASE_URL`.
 3. Lấy connection string direct cho `DIRECT_URL`.
-4. Trong Supabase, bật Realtime cho bảng `QueueEvent`.
-5. Lấy `NEXT_PUBLIC_SUPABASE_URL` và `NEXT_PUBLIC_SUPABASE_ANON_KEY`.
-6. Kiểm tra browser chỉ dùng anon key; không đưa service role key vào biến `NEXT_PUBLIC_*`.
-7. Kiểm tra quyền SELECT/RLS cho `QueueEvent` không làm lộ PII. Bảng này chỉ nên chứa roomId, ticketId, eventType và timestamp.
+4. Áp dụng Prisma migration bằng đúng database owner trong `DIRECT_URL`; migration sẽ bật RLS và khóa quyền browser roles.
+5. Bật publication Realtime cho bảng `QueueEvent` theo `docs/SUPABASE_REALTIME.sql`.
+6. Lấy `NEXT_PUBLIC_SUPABASE_URL` và `NEXT_PUBLIC_SUPABASE_ANON_KEY`.
+7. Kiểm tra browser chỉ dùng anon key; không đưa service role key vào biến `NEXT_PUBLIC_*`.
+8. Kiểm tra quyền SELECT/RLS cho `QueueEvent` không làm lộ PII. Bảng này chỉ nên chứa roomId, ticketId, eventType và timestamp.
+
+`Account`, `Room`, `QueueTicket` và `_prisma_migrations` chỉ được truy cập qua Next.js/Prisma phía server. Supabase client trong browser chỉ dùng `QueueEvent` cho Realtime và chỉ có quyền `SELECT`. Staff được phép thực hiện các thao tác vận hành queue qua server actions đã xác thực/validate; Staff không có quyền quản trị phòng, tài khoản, nhân viên hoặc lịch sử.
 
 ## Environment Variables
 
@@ -32,15 +35,23 @@ SEED_ADMIN_PASSWORD=
 
 ## Database Migration
 
-Trước khi production traffic dùng app:
+Trước khi production traffic dùng app, xác nhận `DIRECT_URL` kết nối bằng role sở hữu cả năm bảng Prisma và `DATABASE_URL` dùng cùng database role qua pooled connection. Migration bảo mật sẽ chủ động dừng trước khi thay đổi nếu role chạy migration không phải owner của một trong các bảng:
+
+```bash
+psql "$DIRECT_URL" -v ON_ERROR_STOP=1 -c "SELECT current_user; SELECT c.relname, pg_get_userbyid(c.relowner) AS owner FROM pg_class c JOIN pg_namespace n ON n.oid = c.relnamespace WHERE n.nspname = 'public' AND c.relname IN ('Account', 'Room', 'QueueTicket', 'QueueEvent', '_prisma_migrations') ORDER BY c.relname;"
+```
+
+Sau đó validate và áp dụng migration:
 
 ```bash
 npx prisma validate
 npx prisma migrate deploy
-npx prisma db seed
+psql "$DIRECT_URL" -v ON_ERROR_STOP=1 -f prisma/checks/verify_supabase_rls_grants.sql
 ```
 
-Seed chỉ upsert admin đầu tiên và hash mật khẩu bằng bcrypt.
+Script kiểm tra chạy trong transaction và `ROLLBACK` ở cuối. Nó kiểm tra RLS, effective privileges, policy Realtime, default privileges và giả lập role `anon`; script không giữ lại thay đổi dữ liệu hay quyền.
+
+Chỉ chạy `npx prisma db seed` khi cần tạo/upsert admin đầu tiên. Seed hash mật khẩu bằng bcrypt.
 
 ## Vercel
 
@@ -63,9 +74,10 @@ Seed chỉ upsert admin đầu tiên và hash mật khẩu bằng bcrypt.
 9. Tạm làm lỗi Realtime hoặc tắt publication `QueueEvent` để kiểm tra indicator chuyển sang trạng thái không ổn định và polling fallback cập nhật theo interval.
 10. Khôi phục Realtime và kiểm tra polling dừng khi subscription `SUBSCRIBED` lại.
 11. Kiểm tra offline/online: tắt mạng, bảo đảm UI giữ snapshot cũ; bật mạng lại, UI refetch và reconnect.
-12. Kiểm tra âm thanh sau user gesture bằng nút bật âm thanh trên trang ticket/customer.
+12. Kiểm tra âm thanh sau thao tác lấy vé của khách; trang ticket/customer không còn nút bật/tắt âm thanh.
 13. Kiểm tra mobile/tablet cho `/join`, ticket page và staff dashboard.
 14. Chạy checklist trong `docs/MANUAL_TEST_CHECKLIST.md`.
+15. Chạy lại `prisma/checks/verify_supabase_rls_grants.sql` bằng direct connection và yêu cầu toàn bộ assertion pass.
 
 ## Rollback
 

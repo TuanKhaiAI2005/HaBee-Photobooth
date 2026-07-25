@@ -22,7 +22,7 @@ const createdStaff: Account = {
   id: "bd22d5f3-a01c-4a19-b2ab-f5b99c5be3d5",
   username: null,
   employeeUid: "NV-123456",
-  fullName: "Nhan vien",
+  fullName: "Nhân viên",
   passwordHash: "hash",
   role: "STAFF",
   isActive: true,
@@ -47,14 +47,14 @@ describe("staff admin mutations", () => {
 
     await expect(
       createStaffForAdmin(admin, repository, {
-        fullName: "Nhan vien",
+        fullName: "Nhân viên",
         password: "1234",
       }),
     ).resolves.toEqual(createdStaff);
 
     await expect(
       createStaffForAdmin(staffAccount, repository, {
-        fullName: "Nhan vien",
+        fullName: "Nhân viên",
         password: "1234",
       }),
     ).rejects.toThrow(ForbiddenError);

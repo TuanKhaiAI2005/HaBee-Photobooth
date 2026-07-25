@@ -27,19 +27,19 @@ function getConnectionText(state: ConnectionState, mode: IndicatorMode, lastSync
   const lastSync = formatTime(lastSyncedAt);
 
   if (mode === "customer") {
-    if (state === "connecting" || state === "syncing") return "connecting - dang cap nhat luot cua ban";
-    if (state === "connected") return lastSync ? `connected - dong bo lan cuoi luc ${lastSync}` : "connected";
-    if (state === "offline") return "offline - vui long kiem tra ket noi";
-    if (state === "degraded") return "degraded - dang dung polling du phong";
-    return "error - khong the dong bo luot cua ban";
+    if (state === "connecting" || state === "syncing") return "Đang cập nhật lượt của bạn";
+    if (state === "connected") return lastSync ? `Đã đồng bộ lần cuối lúc ${lastSync}` : "Đã kết nối";
+    if (state === "offline") return "Mất mạng - vui lòng kiểm tra kết nối";
+    if (state === "degraded") return "Đang dùng polling dự phòng";
+    return "Không thể đồng bộ lượt của bạn";
   }
 
-  if (state === "connecting") return "connecting - dang ket noi";
-  if (state === "connected") return lastSync ? `connected - dong bo lan cuoi luc ${lastSync}` : "connected";
-  if (state === "syncing") return "connected - dang dong bo";
-  if (state === "degraded") return "degraded - dang dung polling du phong";
-  if (state === "offline") return "offline - mat mang";
-  return "error - khong the dong bo";
+  if (state === "connecting") return "Đang kết nối";
+  if (state === "connected") return lastSync ? `Đã đồng bộ lần cuối lúc ${lastSync}` : "Đã kết nối";
+  if (state === "syncing") return "Đang đồng bộ";
+  if (state === "degraded") return "Đang dùng polling dự phòng";
+  if (state === "offline") return "Mất mạng";
+  return "Không thể đồng bộ";
 }
 
 export function QueueConnectionIndicator({

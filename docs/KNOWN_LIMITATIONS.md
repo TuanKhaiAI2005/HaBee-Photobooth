@@ -1,7 +1,7 @@
 # Known Limitations
 
-- Âm thanh thông báo phụ thuộc browser autoplay policy. Người dùng có thể cần bấm bật âm thanh sau khi mở trang.
-- Vibration phụ thuộc thiết bị và trình duyệt. Nếu API không hỗ trợ, UI vẫn hiển thị thông báo trực quan.
+- Âm thanh thông báo phụ thuộc browser autoplay policy. Hệ thống tự bật âm thanh khi khách lấy vé, nhưng một số trình duyệt vẫn có thể chặn phát âm thanh nếu không nhận diện được thao tác người dùng.
+- Rung phụ thuộc thiết bị và trình duyệt. Nếu API không hỗ trợ, UI vẫn hiển thị thông báo trực quan.
 - Không có notification khi trang đã đóng hoặc trình duyệt không còn mở trang ticket/admin.
 - Không có background Web Push.
 - Không có SMS.

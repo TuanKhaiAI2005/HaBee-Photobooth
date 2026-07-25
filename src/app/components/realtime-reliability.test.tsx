@@ -313,7 +313,6 @@ describe("CalledNotification duplicate protection", () => {
 
   beforeEach(() => {
     vi.useFakeTimers();
-    localStorage.setItem("photoSoundEnabled", "1");
   });
 
   afterEach(async () => {
@@ -366,6 +365,24 @@ describe("CalledNotification duplicate protection", () => {
     const view = await render(<CalledNotification mode="admin" ticket={ticket} />);
 
     expect(audio.play).not.toHaveBeenCalled();
+    await view.unmount();
+  });
+
+  it("plays customer alert audio by default without a saved sound preference", async () => {
+    const audio = mockNotificationAudio();
+    const ticket = {
+      id: "ticket-1",
+      ticketCode: "A001",
+      roomId: "room-1",
+      roomName: "Phòng 1",
+      calledAt: "2026-07-17T10:25:14.000Z",
+    };
+
+    const view = await render(<CalledNotification mode="customer" ticket={ticket} />);
+
+    expect(localStorage.getItem("photoSoundEnabled")).toBeNull();
+    expect(audio.createdSources).toEqual(["/nhachuong.mp3"]);
+    expect(audio.play).toHaveBeenCalledTimes(1);
     await view.unmount();
   });
 

@@ -12,6 +12,7 @@ type ConfirmFormProps = {
   submitLabel: string;
   pendingLabel?: string;
   className?: string;
+  onConfirmedSubmit?: () => void;
 };
 
 function SubmitButton({ label, pendingLabel }: { label: string; pendingLabel?: string }) {
@@ -35,6 +36,7 @@ export function ConfirmForm({
   submitLabel,
   pendingLabel,
   className,
+  onConfirmedSubmit,
 }: ConfirmFormProps) {
   const [state, formAction] = useActionState(action, initialAdminActionState);
 
@@ -45,7 +47,10 @@ export function ConfirmForm({
       onSubmit={(event) => {
         if (!window.confirm(confirmMessage)) {
           event.preventDefault();
+          return;
         }
+
+        onConfirmedSubmit?.();
       }}
     >
       {children}

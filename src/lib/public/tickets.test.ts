@@ -35,7 +35,7 @@ function makePrisma(overrides: Record<string, unknown> = {}) {
       async findUnique() {
         return {
           id: "room-id",
-          name: "Phong 1",
+          name: "Phòng 1",
           publicToken: "phong-1",
           color: "#111827",
           defaultDurationMinutes: 15,
@@ -183,7 +183,7 @@ describe("ticket access and cancellation", () => {
           }
           return {
             ...makeTicket({ customerAccessTokenHash: tokenHash }),
-            room: { name: "Phong 1", publicToken: "phong-1", defaultDurationMinutes: 15 },
+            room: { name: "Phòng 1", publicToken: "phong-1", defaultDurationMinutes: 15 },
           };
         },
         async count() {

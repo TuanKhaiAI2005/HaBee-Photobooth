@@ -20,7 +20,7 @@ const staff: PublicAccount = {
 
 const room: Room = {
   id: "d17bb468-a3c5-4a49-a715-3cfec0a2e0ce",
-  name: "Phong 1",
+  name: "Phòng 1",
   publicToken: "phong-1",
   color: "#111827",
   defaultDurationMinutes: 30,
@@ -46,7 +46,7 @@ describe("room admin mutations", () => {
 
     await expect(
       createRoomForAdmin(admin, repository, {
-        name: "Phong 1",
+        name: "Phòng 1",
         color: "#111827",
         defaultDurationMinutes: 30,
         sortOrder: 0,
@@ -56,7 +56,7 @@ describe("room admin mutations", () => {
 
     await expect(
       createRoomForAdmin(staff, repository, {
-        name: "Phong 1",
+        name: "Phòng 1",
         color: "#111827",
         defaultDurationMinutes: 30,
         sortOrder: 0,
@@ -73,7 +73,7 @@ describe("room admin mutations", () => {
       },
     };
 
-    await expect(generateUniqueRoomPublicToken(repository, "Phong 1")).resolves.toBe("phong-1-2");
+    await expect(generateUniqueRoomPublicToken(repository, "Phòng 1")).resolves.toBe("phong-1-2");
   });
 
   it("allows only admin to delete rooms", async () => {

@@ -28,7 +28,7 @@
 - Do not expose server-only secrets to client code.
 - Do not send full customer names or phone numbers to public or staff views.
 - Do not send full data to the client and hide it with CSS.
-- Staff users are read-only; block every staff mutation on the server.
+- Staff users may operate queue tickets (call, start, complete, cancel, mark no-show, and reorder) through validated queue actions, but must be blocked from admin-only room, account, staff-management, and history mutations.
 - Every mutation must be validated on the server.
 - Customer ticket access must use a secret access token, never a phone number.
 - Timers must not write to the database every second. Store `serviceStartedAt` and `expectedEndAt`.

@@ -3,7 +3,7 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: "HaBee Photobooth",
-  description: "Ung dung quan ly hang doi cute pastel cho HaBee Photobooth.",
+  description: "Ứng dụng quản lý hàng đợi cute pastel cho HaBee Photobooth.",
 };
 
 export default function RootLayout({

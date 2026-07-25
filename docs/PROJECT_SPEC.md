@@ -16,8 +16,9 @@
 ### Nhân viên
 
 - Đăng nhập bằng UID và PIN/mật khẩu.
-- Chỉ xem phòng, đồng hồ, số người chờ và danh sách khách đã che dữ liệu.
-- Không được mutation dữ liệu.
+- Xem phòng, đồng hồ, số người chờ và danh sách khách đã che dữ liệu.
+- Được vận hành queue: gọi khách, xác nhận bắt đầu/hoàn tất lượt, hủy, đánh dấu vắng mặt và sắp xếp vé.
+- Không được gọi mutation quản trị phòng, tài khoản nhân viên hoặc lịch sử.
 
 ### Khách hàng
 
@@ -49,7 +50,7 @@ Luồng chính:
 - Customer chỉ quản lý ticket bằng access token bí mật.
 - Không sử dụng số điện thoại làm token.
 - Không gửi dữ liệu đầy đủ xuống client rồi mới che bằng CSS.
-- Staff phải bị chặn mutation ở server.
+- Staff chỉ được gọi queue mutation đã validate; mọi mutation quản trị phòng, tài khoản nhân viên và lịch sử phải bị chặn ở server.
 - Mọi mutation phải validate ở server.
 - Không đưa secret server-side vào client.
 - Access token lưu bằng SHA-256 hash, không lưu plain text.
@@ -74,6 +75,8 @@ Thông báo âm thanh, popup và rung chỉ hoạt động best-effort khi trang
 
 - Queue mutation cập nhật dữ liệu chính và tạo `QueueEvent`; client nhận event rồi refetch snapshot server.
 - `QueueEvent` chỉ là tín hiệu invalidation, không phải dữ liệu UI.
+- `Account`, `Room`, `QueueTicket` và `_prisma_migrations` chỉ được truy cập qua Next.js/Prisma phía server.
+- Supabase browser client chỉ dùng `QueueEvent` cho Realtime và chỉ có quyền `SELECT`; không có quyền ghi trực tiếp bất kỳ bảng nghiệp vụ nào.
 - Trạng thái kết nối tối thiểu gồm `connecting`, `connected`, `syncing`, `degraded`, `offline`, `error`.
 - Khi Realtime lỗi hoặc timeout, UI giữ snapshot cũ và bật polling fallback theo interval chung.
 - Khi tab visible lại hoặc browser online lại, client refetch ngay và kiểm tra lại trạng thái đồng bộ.

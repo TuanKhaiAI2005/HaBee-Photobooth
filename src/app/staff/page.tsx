@@ -44,10 +44,16 @@ export default async function StaffPage() {
                   <span className="font-black">{room.hasCalled ? "Có khách" : "Chưa gọi"}</span>
                 </span>
               </span>
-              <span className="photo-stat bg-[var(--color-cream)]">
-                <span className="block text-xs font-bold uppercase text-[var(--color-muted-text)]">Đồng hồ phòng</span>
-                <span className="text-2xl font-black">
-                  <QueueTimer expectedEndAt={room.inService?.expectedEndAt ?? null} serverNow={queue.serverNow} />
+              <span className="grid grid-cols-2 gap-3 text-sm">
+                <span className="photo-stat bg-[var(--color-cream)]">
+                  <span className="block text-xs font-bold uppercase text-[var(--color-muted-text)]">Đồng hồ phòng</span>
+                  <span className="text-2xl font-black">
+                    <QueueTimer expectedEndAt={room.inService?.expectedEndAt ?? null} serverNow={queue.serverNow} />
+                  </span>
+                </span>
+                <span className="photo-stat bg-[var(--color-cream)]">
+                  <span className="block text-xs font-bold uppercase text-[var(--color-muted-text)]">Ước tính chờ</span>
+                  <span className="text-2xl font-black">{room.estimatedWaitingMinutes} phút</span>
                 </span>
               </span>
             </Link>

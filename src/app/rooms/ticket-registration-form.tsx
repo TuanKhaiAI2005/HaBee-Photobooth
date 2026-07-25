@@ -8,6 +8,28 @@ type TicketRegistrationFormProps = {
   publicToken: string;
 };
 
+const notificationSoundUrl = "/nhachuong.mp3";
+
+function enableCustomerNotificationSound(): void {
+  localStorage.setItem("photoSoundEnabled", "1");
+
+  if (typeof Audio === "undefined") {
+    return;
+  }
+
+  const audio = new Audio(notificationSoundUrl);
+  audio.muted = true;
+  audio.currentTime = 0;
+  void audio.play()
+    .then(() => {
+      audio.pause();
+      audio.currentTime = 0;
+    })
+    .catch(() => {
+      // Some browsers still block audio; the saved preference keeps the UI enabled.
+    });
+}
+
 export function TicketRegistrationForm({ publicToken }: TicketRegistrationFormProps) {
   return (
     <CustomerInfoGate>
@@ -20,6 +42,7 @@ export function TicketRegistrationForm({ publicToken }: TicketRegistrationFormPr
           <ConfirmForm
             action={createTicketAction}
             className="grid gap-4"
+            onConfirmedSubmit={enableCustomerNotificationSound}
             confirmMessage="Xác nhận đăng ký vào hàng đợi?"
             pendingLabel="Đang đăng ký..."
             submitLabel="Đăng ký"

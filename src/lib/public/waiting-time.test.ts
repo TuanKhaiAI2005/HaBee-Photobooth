@@ -6,6 +6,12 @@ describe("waiting time", () => {
     expect(estimateWaitingMinutes(3, 15)).toBe(45);
   });
 
+  it("can include remaining service time in a room estimate", () => {
+    const remainingCurrentServiceMinutes = 7;
+
+    expect(remainingCurrentServiceMinutes + estimateWaitingMinutes(2, 15)).toBe(37);
+  });
+
   it("does not treat cancelled tickets as active", () => {
     expect(activeTicketStatuses).not.toContain("CANCELLED");
     expect(activeTicketStatuses).not.toContain("COMPLETED");

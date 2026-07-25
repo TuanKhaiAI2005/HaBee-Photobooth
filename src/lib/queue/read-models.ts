@@ -57,6 +57,14 @@ function mapStaffTicket(ticket: AdminQueueTicket): StaffQueueTicket {
   };
 }
 
+function getRemainingServiceMinutes(expectedEndAt: Date | null | undefined, now: Date): number {
+  if (!expectedEndAt) {
+    return 0;
+  }
+
+  return Math.max(0, Math.ceil((expectedEndAt.getTime() - now.getTime()) / 60_000));
+}
+
 export async function getAdminRoomQueue(prisma: Prisma.TransactionClient, roomId: string): Promise<RoomQueueOperationView | null> {
   const room = await prisma.room.findUnique({
     where: { id: roomId },
@@ -151,15 +159,22 @@ export async function listStaffRooms(prisma: Prisma.TransactionClient) {
 
   return {
     serverNow,
-    rooms: rooms.map((room) => ({
-      id: room.id,
-      name: room.name,
-      color: room.color,
-      status: room.status,
-      defaultDurationMinutes: room.defaultDurationMinutes,
-      waitingCount: room.queueTickets.filter((ticket) => ticket.status === "WAITING").length,
-      hasCalled: room.queueTickets.some((ticket) => ticket.status === "CALLED"),
-      inService: room.queueTickets.find((ticket) => ticket.status === "IN_SERVICE") ?? null,
-    })),
+    rooms: rooms.map((room) => {
+      const waitingCount = room.queueTickets.filter((ticket) => ticket.status === "WAITING").length;
+      const inService = room.queueTickets.find((ticket) => ticket.status === "IN_SERVICE") ?? null;
+      const remainingServiceMinutes = getRemainingServiceMinutes(inService?.expectedEndAt, serverNow);
+
+      return {
+        id: room.id,
+        name: room.name,
+        color: room.color,
+        status: room.status,
+        defaultDurationMinutes: room.defaultDurationMinutes,
+        waitingCount,
+        estimatedWaitingMinutes: remainingServiceMinutes + estimateWaitingMinutes(waitingCount, room.defaultDurationMinutes),
+        hasCalled: room.queueTickets.some((ticket) => ticket.status === "CALLED"),
+        inService,
+      };
+    }),
   };
 }

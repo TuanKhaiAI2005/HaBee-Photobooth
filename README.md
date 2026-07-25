@@ -1,6 +1,6 @@
 # Photobooth Queue
 
-Ứng dụng quản lý hàng đợi cho một chi nhánh photobooth nhỏ. Admin quản lý phòng, nhân viên và vận hành hàng đợi; nhân viên chỉ xem dữ liệu đã che; khách lấy vé qua QR và theo dõi lượt bằng link bí mật.
+Ứng dụng quản lý hàng đợi cho một chi nhánh photobooth nhỏ. Admin quản lý phòng, nhân viên và vận hành hàng đợi; nhân viên vận hành queue bằng dữ liệu khách đã che; khách lấy vé qua QR và theo dõi lượt bằng link bí mật.
 
 ## Cài đặt local
 
@@ -15,6 +15,8 @@ npm install
 - `DATABASE_URL`: connection string pooled.
 - `DIRECT_URL`: connection string direct dùng cho Prisma migration.
 - Bật Realtime cho bảng `QueueEvent` trong Supabase để các trang đang mở tự refetch.
+- `Account`, `Room`, `QueueTicket` và `_prisma_migrations` chỉ được truy cập qua Next.js/Prisma phía server; browser không có grant.
+- Supabase browser client chỉ có quyền `SELECT` bảng `QueueEvent` để nhận tín hiệu Realtime.
 
 3. Tạo `.env.local` từ `.env.example` và điền giá trị thật:
 
@@ -63,6 +65,7 @@ npm run build
 - Admin mở trang QR của phòng tại `/admin/rooms/[roomId]`, tải PNG/SVG hoặc mở trang in.
 - Khách quét QR, đăng ký tên và số điện thoại, sau đó giữ trang vé để theo dõi lượt.
 - Nhân viên đăng nhập tại `/staff/login` bằng UID và PIN/mật khẩu do admin tạo.
+- Nhân viên được gọi khách, bắt đầu/hoàn tất lượt, hủy, đánh dấu vắng mặt và sắp xếp queue; nhân viên chỉ nhận dữ liệu khách đã che và không được gọi mutation quản trị phòng/tài khoản/lịch sử.
 
 ## Deploy Vercel
 

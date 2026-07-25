@@ -8,18 +8,18 @@ import { todayVietnamUtcRange } from "@/lib/timezone";
 const adminCards = [
   {
     href: "/admin/rooms",
-    title: "Quan ly phong",
-    description: "Tao phong, in QR, xoa phong moi va vao man hinh van hanh hang doi.",
+    title: "Quản lý phòng",
+    description: "Tạo phòng, in QR, xóa phòng mới và vào màn hình vận hành hàng đợi.",
   },
   {
     href: "/admin/staff",
-    title: "Quan ly nhan vien",
-    description: "Tao UID, reset PIN, khoa/mo khoa hoac xoa tai khoan nhan vien.",
+    title: "Quản lý nhân viên",
+    description: "Tạo UID, đặt lại PIN, khóa/mở khóa hoặc xóa tài khoản nhân viên.",
   },
   {
     href: "/admin/history",
-    title: "Lich su su dung",
-    description: "Tra cuu khach da hoan thanh, thoi gian su dung va trang thai ve.",
+    title: "Lịch sử sử dụng",
+    description: "Tra cứu khách đã hoàn thành, thời gian sử dụng và trạng thái vé.",
   },
 ];
 
@@ -54,26 +54,26 @@ export default async function AdminPage() {
           <BrandMark />
         </div>
         <div className="admin-overview-content">
-          <span className="admin-status-pill">San sang van hanh</span>
-          <h1>Bang dieu khien <HaBeeLogoText /></h1>
-          <p>Dang dang nhap: {account.fullName}.</p>
-          <div className="admin-overview-actions" aria-label="Tac vu nhanh">
+          <span className="admin-status-pill">Sẵn sàng vận hành</span>
+          <h1>Bảng điều khiển <HaBeeLogoText /></h1>
+          <p>Đang đăng nhập: {account.fullName}.</p>
+          <div className="admin-overview-actions" aria-label="Tác vụ nhanh">
             <Link className="photo-button" href="/admin/rooms">
-              Quan ly phong
+              Quản lý phòng
             </Link>
             <Link className="photo-button-secondary" href="/admin/history">
-              Xem lich su
+              Xem lịch sử
             </Link>
           </div>
         </div>
       </section>
       <section className="grid gap-4 sm:grid-cols-2">
         <div className="photo-stat">
-          <p className="text-xs font-bold uppercase text-[var(--color-muted-text)]">Khach dang ky hom nay</p>
+          <p className="text-xs font-bold uppercase text-[var(--color-muted-text)]">Khách đăng ký hôm nay</p>
           <p className="mt-2 text-4xl font-black text-[var(--color-ink)]">{registeredToday}</p>
         </div>
         <div className="photo-stat">
-          <p className="text-xs font-bold uppercase text-[var(--color-muted-text)]">Khach hoan thanh hom nay</p>
+          <p className="text-xs font-bold uppercase text-[var(--color-muted-text)]">Khách hoàn thành hôm nay</p>
           <p className="mt-2 text-4xl font-black text-[var(--color-ink)]">{completedToday}</p>
         </div>
       </section>

@@ -21,7 +21,7 @@ export function QueueTimer({ expectedEndAt, serverNow }: QueueTimerProps) {
   }, [serverNow]);
 
   if (!expectedEndAt) {
-    return <span>Chua bat dau</span>;
+    return <span>Chưa bắt đầu</span>;
   }
 
   const remaining = Math.max(0, new Date(expectedEndAt).getTime() - (now ?? new Date(serverNow).getTime()));
