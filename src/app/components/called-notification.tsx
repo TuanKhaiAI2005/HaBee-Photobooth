@@ -1,6 +1,10 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import {
+  startNotificationSound,
+  type NotificationSoundHandle,
+} from "@/lib/browser/notification-sound";
 
 type CalledTicket = {
   id: string;
@@ -17,40 +21,7 @@ type CalledNotificationProps = {
   mode: "admin" | "customer";
 };
 
-type SoundHandle = {
-  stop: () => void;
-};
-
-const notificationSoundUrl = "/nhachuong.mp3";
 const notificationSoundDurationMs = 10_000;
-
-function startNotificationSound(): SoundHandle | null {
-  if (typeof Audio === "undefined") {
-    return null;
-  }
-
-  const audio = new Audio(notificationSoundUrl);
-  let stopped = false;
-
-  audio.loop = true;
-  audio.currentTime = 0;
-
-  function stop(): void {
-    if (stopped) {
-      return;
-    }
-
-    stopped = true;
-    window.clearTimeout(timeoutId);
-    audio.pause();
-    audio.currentTime = 0;
-  }
-
-  const timeoutId = window.setTimeout(() => stop(), notificationSoundDurationMs);
-  void audio.play().catch(() => stop());
-
-  return { stop };
-}
 
 function canUseBrowserNotifications(): boolean {
   return "Notification" in window;
@@ -76,9 +47,14 @@ export function CalledNotification({ ticket, mode }: CalledNotificationProps) {
   const isCustomerMode = mode === "customer";
   const [visibleTicket, setVisibleTicket] = useState<CalledTicket | null>(null);
   const seenRef = useRef<Set<string>>(new Set());
-  const soundRef = useRef<SoundHandle | null>(null);
+  const soundRef = useRef<NotificationSoundHandle | null>(null);
 
   const eventKey = useMemo(() => (ticket?.calledAt ? `${ticket.id}:${new Date(ticket.calledAt).toISOString()}` : null), [ticket]);
+
+  const playSound = useCallback((durationMs: number, loop: boolean): void => {
+    soundRef.current?.stop();
+    soundRef.current = startNotificationSound({ durationMs, loop });
+  }, []);
 
   useEffect(() => {
     if (!ticket || !eventKey || seenRef.current.has(eventKey)) {
@@ -97,17 +73,12 @@ export function CalledNotification({ ticket, mode }: CalledNotificationProps) {
     }
 
     if (isCustomerMode) {
-      try {
-        soundRef.current?.stop();
-        soundRef.current = startNotificationSound();
-      } catch {
-        // Browser autoplay/audio failures are intentionally ignored.
-      }
+      playSound(notificationSoundDurationMs, true);
     }
-  }, [eventKey, isCustomerMode, mode, ticket]);
+  }, [eventKey, isCustomerMode, mode, playSound, ticket]);
 
   useEffect(() => {
-    if (!ticket) {
+    if (!eventKey) {
       soundRef.current?.stop();
       soundRef.current = null;
     }
@@ -116,7 +87,7 @@ export function CalledNotification({ ticket, mode }: CalledNotificationProps) {
       soundRef.current?.stop();
       soundRef.current = null;
     };
-  }, [ticket]);
+  }, [eventKey]);
 
   function dismissNotification(): void {
     soundRef.current?.stop();

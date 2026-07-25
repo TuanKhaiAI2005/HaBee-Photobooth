@@ -1,6 +1,6 @@
 # Known Limitations
 
-- Âm thanh thông báo phụ thuộc browser autoplay policy. Hệ thống tự bật âm thanh khi khách lấy vé, nhưng một số trình duyệt vẫn có thể chặn phát âm thanh nếu không nhận diện được thao tác người dùng.
+- Âm thanh thông báo phụ thuộc browser autoplay policy và chế độ im lặng của điện thoại. Hệ thống dùng thao tác `Đăng ký` để unlock Web Audio trong im lặng, chỉ phát chuông khi vé được gọi; nếu khách reload/mở lại trang thì browser có thể thu hồi quyền.
 - Rung phụ thuộc thiết bị và trình duyệt. Nếu API không hỗ trợ, UI vẫn hiển thị thông báo trực quan.
 - Không có notification khi trang đã đóng hoặc trình duyệt không còn mở trang ticket/admin.
 - Không có background Web Push.

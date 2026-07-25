@@ -4,6 +4,10 @@ import { createRoot, type Root } from "react-dom/client";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { QueueConnectionIndicator } from "@/app/components/connection-indicator";
 import { CalledNotification } from "@/app/components/called-notification";
+import {
+  primeNotificationSound,
+  startNotificationSound,
+} from "@/lib/browser/notification-sound";
 
 const mocks = vi.hoisted(() => ({
   refresh: vi.fn(),
@@ -289,17 +293,26 @@ describe("QueueConnectionIndicator realtime reliability", () => {
 });
 
 describe("CalledNotification duplicate protection", () => {
-  function mockNotificationAudio() {
-    const play = vi.fn(() => Promise.resolve());
+  function mockNotificationAudio(playback: "allowed" | "blocked" = "allowed") {
+    const play = vi.fn(() => (
+      playback === "allowed"
+        ? Promise.resolve()
+        : Promise.reject(new DOMException("Autoplay blocked", "NotAllowedError"))
+    ));
     const pause = vi.fn();
     const createdSources: string[] = [];
+    const instances: AudioMock[] = [];
 
     class AudioMock {
       currentTime = 0;
       loop = false;
+      muted = true;
+      preload = "";
+      volume = 0;
 
       constructor(src: string) {
         createdSources.push(src);
+        instances.push(this);
       }
 
       play = play;
@@ -308,7 +321,54 @@ describe("CalledNotification duplicate protection", () => {
 
     Object.defineProperty(globalThis, "Audio", { configurable: true, value: AudioMock });
 
-    return { createdSources, pause, play };
+    return { createdSources, instances, pause, play };
+  }
+
+  function mockWebAudio() {
+    const contexts: AudioContextMock[] = [];
+    const sources: AudioBufferSourceMock[] = [];
+
+    class AudioBufferSourceMock {
+      buffer: AudioBuffer | null = null;
+      loop = false;
+      connect = vi.fn();
+      disconnect = vi.fn();
+      start = vi.fn();
+      stop = vi.fn();
+    }
+
+    class AudioContextMock {
+      state: AudioContextState = "suspended";
+      sampleRate = 48_000;
+      destination = {};
+      createBuffer = vi.fn(() => ({ kind: "silent" }));
+      createBufferSource = vi.fn(() => {
+        const source = new AudioBufferSourceMock();
+        sources.push(source);
+        return source;
+      });
+      decodeAudioData = vi.fn(() => Promise.resolve({ kind: "chime" }));
+      resume = vi.fn(() => {
+        this.state = "running";
+        return Promise.resolve();
+      });
+
+      constructor() {
+        contexts.push(this);
+      }
+    }
+
+    Object.defineProperty(window, "AudioContext", {
+      configurable: true,
+      value: AudioContextMock,
+    });
+    vi.spyOn(globalThis, "fetch").mockResolvedValue({
+      arrayBuffer: () => Promise.resolve(new ArrayBuffer(8)),
+      ok: true,
+      status: 200,
+    } as Response);
+
+    return { contexts, sources };
   }
 
   beforeEach(() => {
@@ -346,6 +406,16 @@ describe("CalledNotification duplicate protection", () => {
 
     expect(audio.createdSources).toEqual(["/nhachuong.mp3"]);
     expect(audio.play).toHaveBeenCalledTimes(1);
+
+    await act(async () => {
+      vi.advanceTimersByTime(9_999);
+    });
+    expect(audio.pause).not.toHaveBeenCalled();
+
+    await act(async () => {
+      vi.advanceTimersByTime(1);
+    });
+    expect(audio.pause).toHaveBeenCalledTimes(1);
     await view.unmount();
   });
 
@@ -406,6 +476,59 @@ describe("CalledNotification duplicate protection", () => {
     });
 
     expect(audio.pause).toHaveBeenCalledTimes(1);
+    await view.unmount();
+  });
+
+  it("unlocks silently on registration and plays the decoded chime for ten seconds later", async () => {
+    const fallbackAudio = mockNotificationAudio();
+    const webAudio = mockWebAudio();
+
+    await expect(primeNotificationSound()).resolves.toBe(true);
+
+    expect(fallbackAudio.play).not.toHaveBeenCalled();
+    expect(webAudio.contexts).toHaveLength(1);
+    expect(webAudio.contexts[0]?.createBuffer).toHaveBeenCalledWith(1, 1, 48_000);
+    expect(webAudio.sources).toHaveLength(1);
+    expect(webAudio.sources[0]?.start).toHaveBeenCalledTimes(1);
+
+    const notification = startNotificationSound();
+    await expect(notification?.started).resolves.toBe(true);
+
+    expect(fallbackAudio.play).not.toHaveBeenCalled();
+    expect(webAudio.sources).toHaveLength(2);
+    expect(webAudio.sources[1]?.loop).toBe(true);
+    expect(webAudio.sources[1]?.start).toHaveBeenCalledTimes(1);
+
+    await act(async () => {
+      vi.advanceTimersByTime(9_999);
+    });
+    expect(webAudio.sources[1]?.stop).not.toHaveBeenCalled();
+
+    await act(async () => {
+      vi.advanceTimersByTime(1);
+    });
+    expect(webAudio.sources[1]?.stop).toHaveBeenCalledTimes(1);
+  });
+
+  it("keeps the visual call notification when mobile autoplay is blocked", async () => {
+    mockNotificationAudio("blocked");
+    const ticket = {
+      id: "ticket-1",
+      ticketCode: "A001",
+      roomId: "room-1",
+      roomName: "Phòng 1",
+      calledAt: "2026-07-17T10:25:14.000Z",
+    };
+    const view = await render(<CalledNotification mode="customer" ticket={ticket} />);
+
+    await act(async () => {
+      await Promise.resolve();
+    });
+
+    expect(view.container.textContent).toContain("Đã tới lượt của bạn");
+    expect(view.container.textContent).toContain("A001");
+    expect(Array.from(view.container.querySelectorAll("button"))
+      .map((button) => button.textContent)).toEqual(["Đã hiểu"]);
     await view.unmount();
   });
 });
