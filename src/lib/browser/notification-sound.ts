@@ -11,7 +11,7 @@ type NotificationSoundOptions = {
 };
 
 const notificationSoundUrl = "/nhachuong.mp3";
-const defaultDurationMs = 10_000;
+const defaultDurationMs = 20_000;
 
 let sharedContext: AudioContext | null = null;
 let sharedContextConstructor: typeof AudioContext | null = null;

@@ -74,7 +74,7 @@ Chỉ chạy `npx prisma db seed` khi cần tạo/upsert admin đầu tiên. See
 9. Tạm làm lỗi Realtime hoặc tắt publication `QueueEvent` để kiểm tra indicator chuyển sang trạng thái không ổn định và polling fallback cập nhật theo interval.
 10. Khôi phục Realtime và kiểm tra polling dừng khi subscription `SUBSCRIBED` lại.
 11. Kiểm tra offline/online: tắt mạng, bảo đảm UI giữ snapshot cũ; bật mạng lại, UI refetch và reconnect.
-12. Trên iOS/Android, xác nhận thao tác `Đăng ký` không phát chuông. Giữ nguyên trang ticket, gọi vé và xác nhận chuông tự phát liên tục đủ 10 giây mà không có nút bật âm thanh thủ công.
+12. Trên iOS/Android, xác nhận thao tác `Đăng ký` không phát chuông. Giữ nguyên trang ticket, gọi vé và xác nhận chuông tự phát liên tục đủ 20 giây mà không có nút bật âm thanh thủ công.
 13. Kiểm tra mobile/tablet cho `/join`, ticket page và staff dashboard.
 14. Chạy checklist trong `docs/MANUAL_TEST_CHECKLIST.md`.
 15. Chạy lại `prisma/checks/verify_supabase_rls_grants.sql` bằng direct connection và yêu cầu toàn bộ assertion pass.

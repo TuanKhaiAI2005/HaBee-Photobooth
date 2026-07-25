@@ -408,7 +408,7 @@ describe("CalledNotification duplicate protection", () => {
     expect(audio.play).toHaveBeenCalledTimes(1);
 
     await act(async () => {
-      vi.advanceTimersByTime(9_999);
+      vi.advanceTimersByTime(19_999);
     });
     expect(audio.pause).not.toHaveBeenCalled();
 
@@ -456,7 +456,7 @@ describe("CalledNotification duplicate protection", () => {
     await view.unmount();
   });
 
-  it("stops customer alert audio after ten seconds", async () => {
+  it("stops customer alert audio after twenty seconds", async () => {
     const audio = mockNotificationAudio();
     const ticket = {
       id: "ticket-1",
@@ -472,14 +472,14 @@ describe("CalledNotification duplicate protection", () => {
     expect(audio.pause).not.toHaveBeenCalled();
 
     await act(async () => {
-      vi.advanceTimersByTime(10_000);
+      vi.advanceTimersByTime(20_000);
     });
 
     expect(audio.pause).toHaveBeenCalledTimes(1);
     await view.unmount();
   });
 
-  it("unlocks silently on registration and plays the decoded chime for ten seconds later", async () => {
+  it("unlocks silently on registration and plays the decoded chime for twenty seconds later", async () => {
     const fallbackAudio = mockNotificationAudio();
     const webAudio = mockWebAudio();
 
@@ -500,7 +500,7 @@ describe("CalledNotification duplicate protection", () => {
     expect(webAudio.sources[1]?.start).toHaveBeenCalledTimes(1);
 
     await act(async () => {
-      vi.advanceTimersByTime(9_999);
+      vi.advanceTimersByTime(19_999);
     });
     expect(webAudio.sources[1]?.stop).not.toHaveBeenCalled();
 

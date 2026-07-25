@@ -21,7 +21,7 @@ type CalledNotificationProps = {
   mode: "admin" | "customer";
 };
 
-const notificationSoundDurationMs = 10_000;
+const notificationSoundDurationMs = 20_000;
 
 function canUseBrowserNotifications(): boolean {
   return "Notification" in window;
