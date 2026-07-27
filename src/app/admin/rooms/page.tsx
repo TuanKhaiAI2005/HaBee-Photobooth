@@ -179,56 +179,58 @@ export default async function AdminRoomsPage() {
                   </dd>
                 </div>
               </dl>
-              <ConfirmForm
-                action={updateRoomAction}
-                className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-4"
-                confirmMessage={`Xác nhận cập nhật ${room.name}? Public token sẽ được giữ nguyên.`}
-                pendingLabel="Đang lưu..."
-                submitLabel="Lưu thay đổi"
-              >
-                <input name="id" type="hidden" value={room.id} />
-                <input name="color" type="hidden" value={room.color} />
-                <label className="grid gap-2 text-sm font-medium">
-                  Tên phòng
-                  <input className="photo-input" name="name" required defaultValue={room.name} />
-                </label>
-                <label className="grid gap-2 text-sm font-medium">
-                  Thời lượng phút
-                  <input className="photo-input" name="defaultDurationMinutes" type="number" min={5} max={240} defaultValue={room.defaultDurationMinutes} />
-                </label>
-                <label className="grid gap-2 text-sm font-medium">
-                  Thứ tự
-                  <input className="photo-input" name="sortOrder" type="number" min={0} max={999} defaultValue={room.sortOrder} />
-                </label>
-                <label className="grid gap-2 text-sm font-medium">
-                  Trạng thái
-                  <select className="photo-input" name="status" defaultValue={room.status}>
-                    {roomStatuses.map(([value, label]) => (
-                      <option key={value} value={value}>
-                        {label}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-              </ConfirmForm>
-              <ConfirmForm
-                action={pauseRoomAction}
-                className="mt-3 flex flex-wrap items-center gap-3"
-                confirmMessage={`Tạm dừng ${room.name}?`}
-                pendingLabel="Đang tạm dừng..."
-                submitLabel="Tạm dừng phòng"
-              >
-                <input name="id" type="hidden" value={room.id} />
-              </ConfirmForm>
-              <ConfirmForm
-                action={deleteRoomAction}
-                className="mt-3 flex flex-wrap items-center gap-3"
-                confirmMessage={`Xóa vĩnh viễn ${room.name}? Chỉ xóa được khi phòng chưa có vé hoặc lịch sử hàng đợi.`}
-                pendingLabel="Đang xóa..."
-                submitLabel="Xóa phòng"
-              >
-                <input name="id" type="hidden" value={room.id} />
-              </ConfirmForm>
+              <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                <ConfirmForm
+                  action={updateRoomAction}
+                  className="contents"
+                  confirmMessage={`Xác nhận cập nhật ${room.name}? Public token sẽ được giữ nguyên.`}
+                  pendingLabel="Đang lưu..."
+                  submitLabel="Lưu thay đổi"
+                >
+                  <input name="id" type="hidden" value={room.id} />
+                  <input name="color" type="hidden" value={room.color} />
+                  <label className="grid gap-2 text-sm font-medium">
+                    Tên phòng
+                    <input className="photo-input" name="name" required defaultValue={room.name} />
+                  </label>
+                  <label className="grid gap-2 text-sm font-medium">
+                    Thời lượng phút
+                    <input className="photo-input" name="defaultDurationMinutes" type="number" min={5} max={240} defaultValue={room.defaultDurationMinutes} />
+                  </label>
+                  <label className="grid gap-2 text-sm font-medium">
+                    Thứ tự
+                    <input className="photo-input" name="sortOrder" type="number" min={0} max={999} defaultValue={room.sortOrder} />
+                  </label>
+                  <label className="grid gap-2 text-sm font-medium">
+                    Trạng thái
+                    <select className="photo-input" name="status" defaultValue={room.status}>
+                      {roomStatuses.map(([value, label]) => (
+                        <option key={value} value={value}>
+                          {label}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                </ConfirmForm>
+                <ConfirmForm
+                  action={pauseRoomAction}
+                  className="contents"
+                  confirmMessage={`Tạm dừng ${room.name}?`}
+                  pendingLabel="Đang tạm dừng..."
+                  submitLabel="Tạm dừng phòng"
+                >
+                  <input name="id" type="hidden" value={room.id} />
+                </ConfirmForm>
+                <ConfirmForm
+                  action={deleteRoomAction}
+                  className="contents"
+                  confirmMessage={`Xóa vĩnh viễn ${room.name}? Chỉ xóa được khi phòng chưa có vé hoặc lịch sử hàng đợi.`}
+                  pendingLabel="Đang xóa..."
+                  submitLabel="Xóa phòng"
+                >
+                  <input name="id" type="hidden" value={room.id} />
+                </ConfirmForm>
+              </div>
             </article>
             );
           })
