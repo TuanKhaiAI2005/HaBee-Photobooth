@@ -6,6 +6,7 @@ import { ConfirmForm } from "@/app/components/confirm-form";
 import { AutoCallWatcher } from "@/app/components/auto-call-watcher";
 import { QueueRealtimeRefetch } from "@/app/components/queue-realtime-refetch";
 import { QueueTimer } from "@/app/components/queue-timer";
+import { FullscreenButton } from "@/app/components/fullscreen-button";
 import { getStaffRoomQueue, type StaffQueueTicket } from "@/lib/queue/read-models";
 import { roomStatusLabel, ticketStatusLabel } from "@/lib/labels";
 import {
@@ -93,9 +94,12 @@ export default async function StaffRoomPage({ params }: StaffRoomPageProps) {
               Trạng thái {roomStatusLabel(view.room.status)} - {view.room.defaultDurationMinutes} phút/lượt
             </p>
           </div>
-          <Link className="photo-button-secondary" href="/staff">
-            Xem các phòng
-          </Link>
+          <div className="flex flex-wrap justify-end gap-3">
+            <FullscreenButton />
+            <Link className="photo-button-secondary" href="/staff">
+              Xem các phòng
+            </Link>
+          </div>
         </div>
         <dl className="mt-5 grid gap-3 text-sm sm:grid-cols-3">
           <div className="photo-stat">

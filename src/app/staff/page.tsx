@@ -8,6 +8,7 @@ import { roomStatusLabel } from "@/lib/labels";
 import { QueueConnectionIndicator } from "@/app/components/connection-indicator";
 import { AutoCallWatcher } from "@/app/components/auto-call-watcher";
 import { BrandMark } from "@/app/components/brand-mark";
+import { FullscreenButton } from "@/app/components/fullscreen-button";
 
 export default async function StaffPage() {
   const account = await requireStaffOrAdmin();
@@ -17,7 +18,10 @@ export default async function StaffPage() {
     <main className="photo-shell">
       <AutoCallWatcher roomIds={queue.rooms.map((room) => room.id)} />
       <section className="photo-card">
-        <BrandMark compact />
+        <div className="flex flex-wrap items-start justify-between gap-4">
+          <BrandMark compact />
+          <FullscreenButton />
+        </div>
         <p className="photo-badge mt-4">Nhân viên</p>
         <h1 className="mt-3 text-4xl font-black text-[var(--color-navy)]">Màn hình nhân viên</h1>
         <p className="mt-3 text-[var(--color-muted-text)]">Đã đăng nhập với tên {account.fullName}.</p>
