@@ -15,12 +15,12 @@ Chạy checklist này trên môi trường local hoặc staging sau khi đã mig
 - [ ] Admin tạo phòng mới tại `/admin/rooms`.
 - [ ] Admin tạo nhân viên tại `/admin/staff`.
 - [ ] Nhân viên đăng nhập tại `/staff/login`.
-- [ ] Nhân viên gọi khách, bắt đầu/hoàn tất lượt, hủy, đánh dấu vắng mặt và sắp xếp queue bằng dữ liệu đã che.
+- [ ] Nhân viên gọi khách, bắt đầu/hoàn tất lượt, hủy, đánh dấu vắng mặt và sắp xếp queue với tên khách đầy đủ, số điện thoại đã che.
 - [ ] Admin mở trang QR phòng tại `/admin/rooms/[roomId]`.
 - [ ] Khách mở link QR `/rooms/[publicToken]`.
 - [ ] Khách đăng ký vé bằng tên và số điện thoại.
 - [ ] Public room chỉ hiển thị tên/SĐT đã che.
-- [ ] Staff chỉ thấy tên/SĐT đã che.
+- [ ] Staff thấy tên khách đầy đủ nhưng chỉ thấy SĐT đã che.
 - [ ] Admin thấy tên/SĐT đầy đủ trong trang vận hành.
 - [ ] Admin gọi khách tiếp theo.
 - [ ] Trang ticket của khách hiển thị “Đã tới lượt của bạn”.
@@ -35,7 +35,7 @@ Chạy checklist này trên môi trường local hoặc staging sau khi đã mig
 ## Security Review
 
 - [ ] Public route không trả tên/SĐT đầy đủ của vé khác.
-- [ ] Staff route không trả tên/SĐT đầy đủ.
+- [ ] Staff route trả tên khách đầy đủ nhưng không trả SĐT đầy đủ.
 - [ ] Staff gọi được queue mutation nhưng không gọi được mutation quản trị phòng, tài khoản nhân viên hoặc lịch sử.
 - [ ] `Account`, `Room`, `QueueTicket`, `_prisma_migrations` không có privilege hiệu lực cho `anon`/`authenticated`.
 - [ ] `QueueEvent` chỉ có `SELECT` cho `anon`/`authenticated`; không có quyền ghi, truncate, trigger hoặc references.

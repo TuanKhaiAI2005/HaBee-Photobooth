@@ -1,6 +1,6 @@
 # Photobooth Queue
 
-Ứng dụng quản lý hàng đợi cho một chi nhánh photobooth nhỏ. Admin quản lý phòng, nhân viên và vận hành hàng đợi; nhân viên vận hành queue bằng dữ liệu khách đã che; khách lấy vé qua QR và theo dõi lượt bằng link bí mật.
+Ứng dụng quản lý hàng đợi cho một chi nhánh photobooth nhỏ. Admin quản lý phòng, nhân viên và vận hành hàng đợi; nhân viên vận hành queue với tên khách đầy đủ và số điện thoại đã che; khách lấy vé qua QR và theo dõi lượt bằng link bí mật.
 
 ## Cài đặt local
 
@@ -65,7 +65,7 @@ npm run build
 - Admin mở trang QR của phòng tại `/admin/rooms/[roomId]`, tải PNG/SVG hoặc mở trang in.
 - Khách quét QR, đăng ký tên và số điện thoại, sau đó giữ trang vé để theo dõi lượt.
 - Nhân viên đăng nhập tại `/staff/login` bằng UID và PIN/mật khẩu do admin tạo.
-- Nhân viên được gọi khách, bắt đầu/hoàn tất lượt, hủy, đánh dấu vắng mặt và sắp xếp queue; nhân viên chỉ nhận dữ liệu khách đã che và không được gọi mutation quản trị phòng/tài khoản/lịch sử.
+- Nhân viên được gọi khách, bắt đầu/hoàn tất lượt, hủy, đánh dấu vắng mặt và sắp xếp queue; nhân viên nhận tên khách đầy đủ nhưng chỉ nhận số điện thoại đã che, và không được gọi mutation quản trị phòng/tài khoản/lịch sử.
 
 ## Deploy Vercel
 

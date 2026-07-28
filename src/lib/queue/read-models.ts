@@ -1,5 +1,5 @@
 import type { Prisma, QueueTicket } from "@prisma/client";
-import { maskName, maskPhone } from "@/lib/masking";
+import { maskPhone } from "@/lib/masking";
 import { activeTicketStatuses, estimateWaitingMinutes } from "@/lib/public/waiting-time";
 
 type QueueTicketListItem = Pick<
@@ -20,8 +20,7 @@ type QueueTicketListItem = Pick<
 
 export type AdminQueueTicket = QueueTicketListItem;
 
-export type StaffQueueTicket = Omit<QueueTicketListItem, "customerName" | "normalizedPhone"> & {
-  maskedName: string;
+export type StaffQueueTicket = Omit<QueueTicketListItem, "normalizedPhone"> & {
   maskedPhone: string;
 };
 
@@ -47,12 +46,11 @@ export type StaffRoomQueueView = Omit<RoomQueueOperationView, "inService" | "cal
   waiting: StaffQueueTicket[];
 };
 
-function mapStaffTicket(ticket: AdminQueueTicket): StaffQueueTicket {
-  const { customerName, normalizedPhone, ...safeTicket } = ticket;
+export function mapStaffTicket(ticket: AdminQueueTicket): StaffQueueTicket {
+  const { normalizedPhone, ...safeTicket } = ticket;
 
   return {
     ...safeTicket,
-    maskedName: maskName(customerName),
     maskedPhone: maskPhone(normalizedPhone),
   };
 }

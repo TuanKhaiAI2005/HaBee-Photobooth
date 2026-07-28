@@ -30,7 +30,7 @@
 
 ## Sprint 4: Vận hành hàng đợi, timer và Realtime - Hoàn thành
 
-- Admin và staff gọi khách, xác nhận vào phòng, hoàn tất lượt, hủy và sắp xếp hàng đợi; staff chỉ nhận dữ liệu khách đã che.
+- Admin và staff gọi khách, xác nhận vào phòng, hoàn tất lượt, hủy và sắp xếp hàng đợi; staff nhận tên khách đầy đủ nhưng chỉ nhận số điện thoại đã che.
 - Timer dựa trên `serviceStartedAt` và `expectedEndAt`, không ghi database mỗi giây.
 - Supabase Realtime dùng `QueueEvent` làm tín hiệu để refetch.
 
@@ -63,5 +63,5 @@
 - Connection indicator có các trạng thái connecting, connected, syncing, degraded, offline và error cho admin/staff/customer/public.
 - Refetch được coalesce nhẹ, chống request song song và có recovery khi tab visible lại hoặc mạng online lại.
 - Customer notification vẫn best-effort khi trang đang mở; không có background Web Push, service worker push, SMS hoặc email.
-- Staff dashboard được tối ưu dạng card cho tablet/quầy vận hành nhiều phòng, dùng dữ liệu đã mask và chỉ có quyền queue mutation.
+- Staff dashboard được tối ưu dạng card cho tablet/quầy vận hành nhiều phòng, hiển thị tên khách đầy đủ và số điện thoại đã mask, đồng thời chỉ có quyền queue mutation.
 - Migration Prisma quản lý RLS/grants: bảng nghiệp vụ chỉ qua server, còn Supabase client chỉ `SELECT` `QueueEvent` cho Realtime.

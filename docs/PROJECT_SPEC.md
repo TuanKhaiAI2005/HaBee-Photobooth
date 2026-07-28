@@ -16,7 +16,7 @@
 ### Nhân viên
 
 - Đăng nhập bằng UID và PIN/mật khẩu.
-- Xem phòng, đồng hồ, số người chờ và danh sách khách đã che dữ liệu.
+- Xem phòng, đồng hồ, số người chờ và danh sách khách với tên đầy đủ, số điện thoại đã che.
 - Được vận hành queue: gọi khách, xác nhận bắt đầu/hoàn tất lượt, hủy, đánh dấu vắng mặt và sắp xếp vé.
 - Không được gọi mutation quản trị phòng, tài khoản nhân viên hoặc lịch sử.
 
@@ -45,8 +45,9 @@ Luồng chính:
 
 ## Quy tắc bảo mật
 
-- Public và staff chỉ thấy tên và điện thoại đã che.
-- Admin mới được xem dữ liệu khách đầy đủ.
+- Public chỉ thấy tên và điện thoại đã che.
+- Staff được xem tên khách đầy đủ nhưng chỉ thấy số điện thoại đã che.
+- Admin được xem dữ liệu khách đầy đủ.
 - Customer chỉ quản lý ticket bằng access token bí mật.
 - Không sử dụng số điện thoại làm token.
 - Không gửi dữ liệu đầy đủ xuống client rồi mới che bằng CSS.

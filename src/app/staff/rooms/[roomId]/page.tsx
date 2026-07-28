@@ -29,7 +29,7 @@ function StaffTicketRow({ ticket }: { ticket: StaffQueueTicket }) {
     <div>
       <p className="font-semibold text-[var(--color-navy)]">{ticket.ticketCode}</p>
       <p className="text-sm text-[var(--color-muted-text)]">
-        {ticket.maskedName} - {ticket.maskedPhone}
+        {ticket.customerName} - {ticket.maskedPhone}
       </p>
       <p className="text-xs text-[var(--color-muted-text)]">Vị trí #{ticket.queuePosition}</p>
       <p className="text-xs text-[var(--color-muted-text)]">Trạng thái vé: {ticketStatusLabel(ticket.status)}</p>
@@ -166,7 +166,7 @@ export default async function StaffRoomPage({ params }: StaffRoomPageProps) {
       </section>
 
       <section className="photo-card-soft">
-        <h2 className="text-2xl font-black">Hàng đợi đã che</h2>
+        <h2 className="text-2xl font-black">Hàng đợi</h2>
         {view.waiting.length === 0 ? (
           <p className="mt-3 text-sm text-[var(--color-muted-text)]">Không có vé đang chờ.</p>
         ) : (

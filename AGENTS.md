@@ -26,7 +26,7 @@
 
 - Never commit secrets. Keep real values in `.env.local`.
 - Do not expose server-only secrets to client code.
-- Do not send full customer names or phone numbers to public or staff views.
+- Do not send full customer names or phone numbers to public views. Staff views may receive full customer names, but must only receive masked phone numbers.
 - Do not send full data to the client and hide it with CSS.
 - Staff users may operate queue tickets (call, start, complete, cancel, mark no-show, and reorder) through validated queue actions, but must be blocked from admin-only room, account, staff-management, and history mutations.
 - Every mutation must be validated on the server.
