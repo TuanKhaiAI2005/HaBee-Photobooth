@@ -112,7 +112,7 @@ export function CustomerInfoGate({ children }: CustomerInfoGateProps) {
         }}
       >
         <label className="grid gap-2 text-sm font-bold">
-          Họ và tên
+          Tên
           <input
             className="photo-input"
             name="customerName"
