@@ -1,5 +1,11 @@
 import { describe, expect, it } from "vitest";
-import { formatDurationMinutes, todayVietnamUtcRange, vietnamDateToUtcRange } from "@/lib/timezone";
+import {
+  formatDurationMinutes,
+  todayVietnamUtcRange,
+  vietnamBusinessDate,
+  vietnamBusinessDateKey,
+  vietnamDateToUtcRange,
+} from "@/lib/timezone";
 
 describe("timezone helpers", () => {
   it("converts Vietnam calendar dates to UTC ranges", () => {
@@ -12,6 +18,15 @@ describe("timezone helpers", () => {
 
     expect(range.startUtc.toISOString()).toBe("2026-07-16T17:00:00.000Z");
     expect(range.endExclusiveUtc.toISOString()).toBe("2026-07-17T17:00:00.000Z");
+  });
+
+  it("uses the Vietnam calendar day across the 17:00 UTC boundary", () => {
+    const beforeVietnamMidnight = new Date("2026-08-29T16:59:59.999Z");
+    const atVietnamMidnight = new Date("2026-08-29T17:00:00.000Z");
+
+    expect(vietnamBusinessDateKey(beforeVietnamMidnight)).toBe("2026-08-29");
+    expect(vietnamBusinessDateKey(atVietnamMidnight)).toBe("2026-08-30");
+    expect(vietnamBusinessDate(atVietnamMidnight).toISOString()).toBe("2026-08-30T00:00:00.000Z");
   });
 
   it("formats real service duration only when both timestamps exist", () => {

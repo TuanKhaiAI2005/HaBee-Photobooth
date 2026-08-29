@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { CustomerInfoGate } from "@/app/rooms/customer-info-gate";
+import { RoomLabel } from "@/app/components/room-label";
 import { roomStatusLabel } from "@/lib/labels";
 import type { PublicRoomSummary } from "@/lib/public/tickets";
 
@@ -30,7 +31,9 @@ export function PublicRoomList({ rooms }: PublicRoomListProps) {
               {rooms.map((room) => (
                 <article className="photo-card" key={room.id}>
                   <div>
-                    <h2 className="text-2xl font-black">{room.name}</h2>
+                    <h2 className="text-2xl font-black">
+                      <RoomLabel iconClassName="h-5 w-5" room={room} />
+                    </h2>
                     <p className="photo-badge mt-2">{roomStatusLabel(room.status)}</p>
                   </div>
                   <dl className="mt-5 grid gap-3 text-sm text-[var(--color-navy)]">

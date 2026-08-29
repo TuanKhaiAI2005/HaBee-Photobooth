@@ -13,6 +13,7 @@ BEGIN
     'Account',
     'Room',
     'QueueTicket',
+    'QueueNumberCounter',
     'QueueEvent',
     '_prisma_migrations'
   ]
@@ -41,6 +42,7 @@ BEGIN
     'Account',
     'Room',
     'QueueTicket',
+    'QueueNumberCounter',
     '_prisma_migrations'
   ]
   LOOP
@@ -93,6 +95,7 @@ BEGIN
       'Account',
       'Room',
       'QueueTicket',
+      'QueueNumberCounter',
       '_prisma_migrations'
     )
     AND grantees.rolname IN ('anon', 'authenticated');
@@ -173,6 +176,7 @@ BEGIN
         'Account',
         'Room',
         'QueueTicket',
+        'QueueNumberCounter',
         'QueueEvent',
         '_prisma_migrations'
       )

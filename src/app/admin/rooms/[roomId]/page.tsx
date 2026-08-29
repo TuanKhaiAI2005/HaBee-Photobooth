@@ -8,6 +8,8 @@ import { createQrPngDataUrl, getRoomPublicUrl } from "@/lib/public/qr";
 import { getRoomTodayHistory } from "@/lib/admin/history";
 import { formatVietnamDateTime } from "@/lib/timezone";
 import { ticketStatusLabel } from "@/lib/labels";
+import { QueueNumber } from "@/app/components/queue-number";
+import { RoomLabel } from "@/app/components/room-label";
 
 export const dynamic = "force-dynamic";
 
@@ -34,7 +36,9 @@ export default async function AdminRoomQrPage({ params }: AdminRoomQrPageProps) 
       <AdminNav />
       <section className="rounded border border-[var(--color-border)] bg-[var(--color-surface)] p-6">
         <p className="text-sm font-semibold uppercase text-[var(--color-muted-text)]">QR phòng</p>
-        <h1 className="mt-2 text-3xl font-bold text-[var(--color-navy)]">{room.name}</h1>
+        <h1 className="mt-2 text-3xl font-bold text-[var(--color-navy)]">
+          <RoomLabel iconClassName="h-7 w-7" room={room} />
+        </h1>
         <p className="mt-3 break-all text-sm text-[var(--color-muted-text)]">{publicUrl}</p>
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img alt={`QR ${room.name}`} className="mt-5 h-64 w-64 rounded border border-[var(--color-border)] bg-[var(--color-surface)] p-3" src={qrPng} />
@@ -72,7 +76,10 @@ export default async function AdminRoomQrPage({ params }: AdminRoomQrPageProps) 
           <div className="mt-4 grid gap-3">
             {todayHistory.tickets.map((ticket) => (
               <article className="rounded-lg border border-[var(--color-border)] p-3" key={ticket.id}>
-                <p className="font-bold">{ticket.customerName} - {ticket.ticketCode}</p>
+                <div className="flex flex-wrap items-center gap-3">
+                  <QueueNumber queueNumber={ticket.queueNumber} />
+                  <p className="font-bold">{ticket.customerName} - {ticket.ticketCode}</p>
+                </div>
                 <p className="text-sm text-[var(--color-muted-text)]">
                   {formatVietnamDateTime(ticket.serviceStartedAt)} - {formatVietnamDateTime(ticket.completedAt)} - {ticket.duration} - {ticketStatusLabel(ticket.status)}
                 </p>

@@ -10,6 +10,8 @@ import { roomStatusLabel } from "@/lib/labels";
 import { createQrPngDataUrl, getJoinPublicUrl } from "@/lib/public/qr";
 import { CopyUrlButton } from "@/app/components/copy-url-button";
 import { QueueTimer } from "@/app/components/queue-timer";
+import { QueueNumber } from "@/app/components/queue-number";
+import { RoomLabel, roomLabelText } from "@/app/components/room-label";
 
 const roomStatuses = [
   ["ACTIVE", "Hoạt động"],
@@ -30,6 +32,7 @@ export default async function AdminRoomsPage() {
         select: {
           id: true,
           ticketCode: true,
+          queueNumber: true,
           customerName: true,
           status: true,
           expectedEndAt: true,
@@ -133,7 +136,9 @@ export default async function AdminRoomsPage() {
             <article className="photo-card-soft" key={room.id}>
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div>
-                  <h2 className="text-2xl font-black">{room.name}</h2>
+                  <h2 className="text-2xl font-black">
+                    <RoomLabel iconClassName="h-5 w-5" room={room} />
+                  </h2>
                   <p className="mt-1 text-sm text-[var(--color-muted-text)]">Public token: {room.publicToken}</p>
                   <div className="mt-3 flex flex-wrap gap-3">
                     <Link className="photo-button-secondary" href={`/admin/rooms/${room.id}`}>
@@ -158,14 +163,20 @@ export default async function AdminRoomsPage() {
                   <dt className="text-xs font-bold uppercase text-[var(--color-muted-text)]">Đang sử dụng</dt>
                   {inServiceTicket ? (
                     <dd className="mt-2 grid gap-1">
-                      <span className="text-lg font-black text-[var(--color-ink)]">{inServiceTicket.ticketCode} - {inServiceTicket.customerName}</span>
+                      <span className="flex flex-wrap items-center gap-3">
+                        <QueueNumber queueNumber={inServiceTicket.queueNumber} />
+                        <span className="text-lg font-black text-[var(--color-ink)]">{inServiceTicket.ticketCode} - {inServiceTicket.customerName}</span>
+                      </span>
                       <span className="text-sm font-bold text-[var(--color-muted-text)]">
                         Còn lại: <QueueTimer expectedEndAt={inServiceTicket.expectedEndAt} serverNow={serverNow} />
                       </span>
                     </dd>
                   ) : calledTicket ? (
                     <dd className="mt-2 grid gap-1">
-                      <span className="text-lg font-black text-[var(--color-primary-deep)]">{calledTicket.ticketCode} - {calledTicket.customerName}</span>
+                      <span className="flex flex-wrap items-center gap-3">
+                        <QueueNumber queueNumber={calledTicket.queueNumber} />
+                        <span className="text-lg font-black text-[var(--color-primary-deep)]">{calledTicket.ticketCode} - {calledTicket.customerName}</span>
+                      </span>
                       <span className="text-sm font-bold text-[var(--color-muted-text)]">Đã gọi, chờ khách vào phòng</span>
                     </dd>
                   ) : (
@@ -183,7 +194,7 @@ export default async function AdminRoomsPage() {
                 <ConfirmForm
                   action={updateRoomAction}
                   className="contents"
-                  confirmMessage={`Xác nhận cập nhật ${room.name}? Public token sẽ được giữ nguyên.`}
+                  confirmMessage={`Xác nhận cập nhật ${roomLabelText(room)}? Public token sẽ được giữ nguyên.`}
                   pendingLabel="Đang lưu..."
                   submitLabel="Lưu thay đổi"
                 >
@@ -215,7 +226,7 @@ export default async function AdminRoomsPage() {
                 <ConfirmForm
                   action={pauseRoomAction}
                   className="contents"
-                  confirmMessage={`Tạm dừng ${room.name}?`}
+                  confirmMessage={`Tạm dừng ${roomLabelText(room)}?`}
                   pendingLabel="Đang tạm dừng..."
                   submitLabel="Tạm dừng phòng"
                 >
@@ -224,7 +235,7 @@ export default async function AdminRoomsPage() {
                 <ConfirmForm
                   action={deleteRoomAction}
                   className="contents"
-                  confirmMessage={`Xóa vĩnh viễn ${room.name}? Chỉ xóa được khi phòng chưa có vé hoặc lịch sử hàng đợi.`}
+                  confirmMessage={`Xóa vĩnh viễn ${roomLabelText(room)}? Chỉ xóa được khi phòng chưa có vé hoặc lịch sử hàng đợi.`}
                   pendingLabel="Đang xóa..."
                   submitLabel="Xóa phòng"
                 >

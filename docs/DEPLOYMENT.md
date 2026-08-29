@@ -13,7 +13,7 @@ Tài liệu này mô tả deploy thủ công lên Vercel + Supabase. Không tự
 7. Kiểm tra browser chỉ dùng anon key; không đưa service role key vào biến `NEXT_PUBLIC_*`.
 8. Kiểm tra quyền SELECT/RLS cho `QueueEvent` không làm lộ PII. Bảng này chỉ nên chứa roomId, ticketId, eventType và timestamp.
 
-`Account`, `Room`, `QueueTicket` và `_prisma_migrations` chỉ được truy cập qua Next.js/Prisma phía server. Supabase client trong browser chỉ dùng `QueueEvent` cho Realtime và chỉ có quyền `SELECT`. Staff được phép thực hiện các thao tác vận hành queue qua server actions đã xác thực/validate; Staff không có quyền quản trị phòng, tài khoản, nhân viên hoặc lịch sử.
+`Account`, `Room`, `QueueTicket`, `QueueNumberCounter` và `_prisma_migrations` chỉ được truy cập qua Next.js/Prisma phía server. Supabase client trong browser chỉ dùng `QueueEvent` cho Realtime và chỉ có quyền `SELECT`. Staff được phép thực hiện các thao tác vận hành queue qua server actions đã xác thực/validate; Staff không có quyền quản trị phòng, tài khoản, nhân viên hoặc lịch sử.
 
 ## Environment Variables
 
@@ -35,10 +35,10 @@ SEED_ADMIN_PASSWORD=
 
 ## Database Migration
 
-Trước khi production traffic dùng app, xác nhận `DIRECT_URL` kết nối bằng role sở hữu cả năm bảng Prisma và `DATABASE_URL` dùng cùng database role qua pooled connection. Migration bảo mật sẽ chủ động dừng trước khi thay đổi nếu role chạy migration không phải owner của một trong các bảng:
+Trước khi production traffic dùng app, xác nhận `DIRECT_URL` kết nối bằng role sở hữu cả sáu bảng Prisma (`Account`, `Room`, `QueueTicket`, `QueueEvent`, `QueueNumberCounter`, `_prisma_migrations`) và `DATABASE_URL` dùng cùng database role qua pooled connection. Migration bảo mật sẽ chủ động dừng trước khi thay đổi nếu role chạy migration không phải owner của một trong các bảng:
 
 ```bash
-psql "$DIRECT_URL" -v ON_ERROR_STOP=1 -c "SELECT current_user; SELECT c.relname, pg_get_userbyid(c.relowner) AS owner FROM pg_class c JOIN pg_namespace n ON n.oid = c.relnamespace WHERE n.nspname = 'public' AND c.relname IN ('Account', 'Room', 'QueueTicket', 'QueueEvent', '_prisma_migrations') ORDER BY c.relname;"
+psql "$DIRECT_URL" -v ON_ERROR_STOP=1 -c "SELECT current_user; SELECT c.relname, pg_get_userbyid(c.relowner) AS owner FROM pg_class c JOIN pg_namespace n ON n.oid = c.relnamespace WHERE n.nspname = 'public' AND c.relname IN ('Account', 'Room', 'QueueTicket', 'QueueEvent', 'QueueNumberCounter', '_prisma_migrations') ORDER BY c.relname;"
 ```
 
 Sau đó validate và áp dụng migration:
@@ -50,6 +50,8 @@ psql "$DIRECT_URL" -v ON_ERROR_STOP=1 -f prisma/checks/verify_supabase_rls_grant
 ```
 
 Script kiểm tra chạy trong transaction và `ROLLBACK` ở cuối. Nó kiểm tra RLS, effective privileges, policy Realtime, default privileges và giả lập role `anon`; script không giữ lại thay đổi dữ liệu hay quyền.
+
+Migration STT thêm hai field nullable `queueNumber` và `businessDate` cho dữ liệu tương thích ngược, cùng bảng `QueueNumberCounter` server-only. Không backfill STT cho lịch sử cũ nếu không có đủ thông tin; sau migration cần xác nhận record cũ hiển thị `STT —`, còn mọi đăng ký mới đều có STT 1-50 và `businessDate` theo `Asia/Ho_Chi_Minh`.
 
 Chỉ chạy `npx prisma db seed` khi cần tạo/upsert admin đầu tiên. Seed hash mật khẩu bằng bcrypt.
 
@@ -75,9 +77,12 @@ Chỉ chạy `npx prisma db seed` khi cần tạo/upsert admin đầu tiên. See
 10. Khôi phục Realtime và kiểm tra polling dừng khi subscription `SUBSCRIBED` lại.
 11. Kiểm tra offline/online: tắt mạng, bảo đảm UI giữ snapshot cũ; bật mạng lại, UI refetch và reconnect.
 12. Trên iOS/Android, xác nhận thao tác `Đăng ký` không phát chuông. Giữ nguyên trang ticket, gọi vé và xác nhận chuông tự phát liên tục đủ 20 giây mà không có nút bật âm thanh thủ công.
-13. Kiểm tra mobile/tablet cho `/join`, ticket page và staff dashboard.
-14. Chạy checklist trong `docs/MANUAL_TEST_CHECKLIST.md`.
-15. Chạy lại `prisma/checks/verify_supabase_rls_grants.sql` bằng direct connection và yêu cầu toàn bộ assertion pass.
+13. Kiểm tra STT theo từng phòng: ba phòng đều bắt đầu từ 1, cùng phòng tăng tuần tự và reorder không đổi STT.
+14. Kiểm tra giới hạn 50, reset lúc 00:00 `Asia/Ho_Chi_Minh`, không tái sử dụng sau hủy/xóa và nhiều đăng ký đồng thời không tạo duplicate.
+15. Kiểm tra mobile/tablet/desktop cho `/join`, danh sách và chi tiết phòng, ticket page, staff dashboard/detail, admin queue/history và trang in; xác nhận đúng icon tròn/trái tim/vuông, không overflow và console không có error.
+16. Kiểm tra ít nhất một record legacy hiển thị `STT —` mà không crash.
+17. Chạy checklist trong `docs/MANUAL_TEST_CHECKLIST.md`.
+18. Chạy lại `prisma/checks/verify_supabase_rls_grants.sql` bằng direct connection và yêu cầu toàn bộ assertion pass, bao gồm `QueueNumberCounter` không có browser privilege.
 
 ## Rollback
 

@@ -1,5 +1,25 @@
-const VIETNAM_TIME_ZONE = "Asia/Ho_Chi_Minh";
+export const VIETNAM_TIME_ZONE = "Asia/Ho_Chi_Minh";
 const VIETNAM_OFFSET_MS = 7 * 60 * 60 * 1000;
+
+export function vietnamBusinessDateKey(now = new Date()): string {
+  const parts = new Intl.DateTimeFormat("en-US", {
+    timeZone: VIETNAM_TIME_ZONE,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).formatToParts(now);
+  const values = Object.fromEntries(parts.map((part) => [part.type, part.value]));
+
+  if (!values.year || !values.month || !values.day) {
+    throw new Error("Không thể xác định ngày hiện tại.");
+  }
+
+  return `${values.year}-${values.month}-${values.day}`;
+}
+
+export function vietnamBusinessDate(now = new Date()): Date {
+  return new Date(`${vietnamBusinessDateKey(now)}T00:00:00.000Z`);
+}
 
 export function formatVietnamDateTime(value: Date | null | undefined): string {
   if (!value) {
@@ -29,12 +49,7 @@ export function vietnamDateToUtcRange(dateText: string, boundary: "start" | "end
 }
 
 export function todayVietnamUtcRange(now = new Date()): { startUtc: Date; endExclusiveUtc: Date } {
-  const parts = new Intl.DateTimeFormat("en-CA", {
-    timeZone: VIETNAM_TIME_ZONE,
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-  }).format(now);
+  const parts = vietnamBusinessDateKey(now);
 
   const startUtc = vietnamDateToUtcRange(parts, "start");
   const endExclusiveUtc = vietnamDateToUtcRange(parts, "endExclusive");

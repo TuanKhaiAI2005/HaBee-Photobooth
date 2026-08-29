@@ -3,6 +3,8 @@ import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { getPublicRoomDetail } from "@/lib/public/tickets";
 import { QueueRealtimeRefetch } from "@/app/components/queue-realtime-refetch";
+import { QueueNumber } from "@/app/components/queue-number";
+import { RoomLabel } from "@/app/components/room-label";
 import { roomStatusLabel, ticketStatusLabel } from "@/lib/labels";
 import { TicketRegistrationForm } from "@/app/rooms/ticket-registration-form";
 
@@ -27,7 +29,9 @@ export default async function PublicRoomDetailPage({ params }: PublicRoomDetailP
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
             <p className="photo-badge">Đăng ký hàng đợi</p>
-            <h1 className="mt-3 text-4xl font-black text-[var(--color-navy)]">{detail.room.name}</h1>
+            <h1 className="mt-3 text-4xl font-black text-[var(--color-navy)]">
+              <RoomLabel iconClassName="h-8 w-8" room={detail.room} />
+            </h1>
             <p className="mt-2 text-[var(--color-muted-text)]">Trạng thái phòng: {roomStatusLabel(detail.room.status)}</p>
           </div>
           <Link className="photo-button-secondary" href="/rooms">
@@ -61,9 +65,11 @@ export default async function PublicRoomDetailPage({ params }: PublicRoomDetailP
               <li className="rounded-lg border-2 border-[var(--color-navy)] bg-[var(--color-surface)] p-3 shadow-[3px_3px_0_var(--color-navy)]" key={ticket.ticketCode}>
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div>
+                    <QueueNumber className="mb-3" queueNumber={ticket.queueNumber} />
                     <p className="text-xs font-bold uppercase text-[var(--color-muted-text)]">Mã vé</p>
                     <p className="text-lg font-black">{ticket.ticketCode}</p>
-                    <p className="mt-1 text-sm text-[var(--color-muted-text)]">#{ticket.queuePosition} - {ticket.maskedName}</p>
+                    <p className="mt-1 text-sm font-bold text-[var(--color-navy)]">{ticket.maskedName}</p>
+                    <p className="text-xs text-[var(--color-muted-text)]">Vị trí #{ticket.queuePosition}</p>
                   </div>
                   <div className="text-right text-sm font-bold text-[var(--color-navy)]">
                     <p>{ticket.maskedPhone}</p>

@@ -15,7 +15,7 @@ npm install
 - `DATABASE_URL`: connection string pooled.
 - `DIRECT_URL`: connection string direct dùng cho Prisma migration.
 - Bật Realtime cho bảng `QueueEvent` trong Supabase để các trang đang mở tự refetch.
-- `Account`, `Room`, `QueueTicket` và `_prisma_migrations` chỉ được truy cập qua Next.js/Prisma phía server; browser không có grant.
+- `Account`, `Room`, `QueueTicket`, `QueueNumberCounter` và `_prisma_migrations` chỉ được truy cập qua Next.js/Prisma phía server; browser không có grant.
 - Supabase browser client chỉ có quyền `SELECT` bảng `QueueEvent` để nhận tín hiệu Realtime.
 
 3. Tạo `.env.local` từ `.env.example` và điền giá trị thật:
@@ -56,6 +56,15 @@ npm run typecheck
 npm run test
 npm run build
 ```
+
+## STT theo phòng và ngày
+
+- Mỗi lượt đăng ký mới nhận một `queueNumber` bất biến từ 1 đến 50, tính riêng theo cặp `Room + businessDate`.
+- `businessDate` là ngày lịch tại timezone `Asia/Ho_Chi_Minh`; sang ngày mới mỗi phòng bắt đầu lại từ STT 1 mà không cần cron job xóa dữ liệu.
+- `QueueNumberCounter` cấp số bằng thao tác atomic trong cùng transaction tạo ticket. Database đồng thời giữ unique constraint trên `roomId + businessDate + queueNumber` để chặn trùng số khi có nhiều đăng ký đồng thời.
+- Hủy, hoàn tất, sắp xếp lại hoặc xóa lịch sử ticket không làm thay đổi hay tái sử dụng STT đã cấp. `queuePosition` vẫn là thứ tự vận hành có thể sắp xếp và độc lập với STT.
+- Ticket cũ chưa có dữ liệu STT được giữ nguyên và hiển thị `STT —`; hệ thống không tự backfill một số có thể sai.
+- Nhãn phòng dùng biểu tượng thống nhất: Phòng 1 hình tròn, Phòng 2 hình trái tim và Phòng 3 hình vuông.
 
 ## Tài khoản và vận hành
 

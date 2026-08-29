@@ -11,6 +11,8 @@ import { listHistory } from "@/lib/admin/history";
 import { prisma } from "@/lib/prisma";
 import { formatVietnamDateTime } from "@/lib/timezone";
 import { ticketStatusLabel } from "@/lib/labels";
+import { QueueNumber } from "@/app/components/queue-number";
+import { RoomLabel, roomLabelText } from "@/app/components/room-label";
 
 export const dynamic = "force-dynamic";
 
@@ -53,7 +55,7 @@ export default async function AdminHistoryPage({ searchParams }: HistoryPageProp
         <input className="photo-input" defaultValue={data.filters.to ?? ""} name="to" type="date" />
         <select className="photo-input" defaultValue={data.filters.roomId ?? ""} name="roomId">
           <option value="">Tất cả phòng</option>
-          {data.rooms.map((room) => <option key={room.id} value={room.id}>{room.name}</option>)}
+          {data.rooms.map((room) => <option key={room.id} value={room.id}>{roomLabelText(room)}</option>)}
         </select>
         <select className="photo-input" defaultValue={data.filters.status ?? ""} name="status">
           <option value="">Tất cả trạng thái</option>
@@ -95,12 +97,13 @@ export default async function AdminHistoryPage({ searchParams }: HistoryPageProp
               <article className="rounded-lg border-2 border-[var(--color-navy)] bg-[var(--color-surface)] p-4" key={ticket.id}>
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div>
-                    <p className="text-lg font-black">{ticket.ticketCode} - {ticket.customerName}</p>
+                    <div className="flex flex-wrap items-center gap-3">
+                      <QueueNumber queueNumber={ticket.queueNumber} />
+                      <p className="text-lg font-black">{ticket.ticketCode} - {ticket.customerName}</p>
+                    </div>
                     <p className="break-words text-sm text-[var(--color-muted-text)]">Số điện thoại: {ticket.normalizedPhone}</p>
                   </div>
-                  <span className="rounded border border-[var(--color-navy)] px-2 py-1 text-xs font-bold">
-                    {ticket.roomName}
-                  </span>
+                  <RoomLabel className="rounded border border-[var(--color-navy)] px-2 py-1 text-xs font-bold" room={ticket.roomName} />
                 </div>
                 <dl className="mt-3 grid gap-2 text-sm sm:grid-cols-3">
                   <div><dt className="font-bold">Đăng ký</dt><dd>{formatVietnamDateTime(ticket.registeredAt)}</dd></div>
@@ -108,7 +111,7 @@ export default async function AdminHistoryPage({ searchParams }: HistoryPageProp
                   <div><dt className="font-bold">Bắt đầu</dt><dd>{formatVietnamDateTime(ticket.serviceStartedAt)}</dd></div>
                   <div><dt className="font-bold">Kết thúc</dt><dd>{formatVietnamDateTime(ticket.completedAt)}</dd></div>
                   <div><dt className="font-bold">Thời lượng</dt><dd>{ticket.duration}</dd></div>
-                  <div><dt className="font-bold">Phòng đăng ký</dt><dd>{ticket.roomName}</dd></div>
+                  <div><dt className="font-bold">Phòng đăng ký</dt><dd><RoomLabel room={ticket.roomName} /></dd></div>
                   <div><dt className="font-bold">Trạng thái cuối</dt><dd>{ticketStatusLabel(ticket.status)}</dd></div>
                 </dl>
                 <ConfirmForm

@@ -2,7 +2,12 @@ import { Prisma, type QueueTicket } from "@prisma/client";
 import { describe, expect, it } from "vitest";
 import { hashAccessToken } from "@/lib/security/token";
 import { cancelTicketByToken } from "@/lib/queue/operations";
-import { createTicket, getTicketByAccessToken, mapPublicQueueItem } from "@/lib/public/tickets";
+import {
+  allocateDailyRoomQueueNumber,
+  createTicket,
+  getTicketByAccessToken,
+  mapPublicQueueItem,
+} from "@/lib/public/tickets";
 
 function makeTicket(overrides: Partial<QueueTicket> = {}): QueueTicket {
   return {
@@ -14,6 +19,8 @@ function makeTicket(overrides: Partial<QueueTicket> = {}): QueueTicket {
     customerAccessTokenHash: "hash",
     status: "WAITING",
     queuePosition: 1,
+    queueNumber: null,
+    businessDate: null,
     registeredAt: new Date("2026-01-01T00:00:00.000Z"),
     calledAt: null,
     arrivalConfirmedAt: null,
@@ -73,6 +80,9 @@ function makePrisma(overrides: Record<string, unknown> = {}) {
         return data;
       },
     },
+    async $queryRaw() {
+      return [{ lastNumber: 1 }];
+    },
     ...overrides,
   };
 
@@ -92,22 +102,33 @@ describe("public ticket mapping", () => {
 
     expect(publicTicket.maskedName).toBe("**** **** An");
     expect(publicTicket.maskedPhone).toBe("********5678");
+    expect(publicTicket.queueNumber).toBeNull();
     expect(JSON.stringify(publicTicket)).not.toContain("Nguyen Van An");
     expect(JSON.stringify(publicTicket)).not.toContain("+84912345678");
+  });
+
+  it("keeps a valid daily queue number in the safe public projection", () => {
+    expect(mapPublicQueueItem(makeTicket({ queueNumber: 12 })).queueNumber).toBe(12);
   });
 });
 
 describe("ticket creation", () => {
   it("creates a ticket, queue position and queue event without storing the raw token", async () => {
     const prisma = makePrisma();
-    const result = await createTicket(prisma as never, {
-      publicToken: "phong-1",
-      customerName: "Nguyen Van An",
-      phone: "+84912345678",
-    });
+    const result = await createTicket(
+      prisma as never,
+      {
+        publicToken: "phong-1",
+        customerName: "Nguyen Van An",
+        phone: "+84912345678",
+      },
+      new Date("2026-08-29T17:00:00.000Z"),
+    );
 
     expect(result.ticket.ticketCode).toMatch(/^Q-/);
     expect(result.ticket.queuePosition).toBe(1);
+    expect(result.ticket.queueNumber).toBe(1);
+    expect(result.ticket.businessDate?.toISOString()).toBe("2026-08-30T00:00:00.000Z");
     expect(prisma.events).toHaveLength(1);
     expect(JSON.stringify(prisma.createdTickets)).not.toContain(result.accessToken);
     expect(JSON.stringify(prisma.createdTickets)).toContain(hashAccessToken(result.accessToken));
@@ -143,6 +164,24 @@ describe("ticket creation", () => {
     ).rejects.toThrow("Số điện thoại này đang có vé active.");
   });
 
+  it("returns a clear error when the selected room has issued all 50 daily numbers", async () => {
+    const prisma = makePrisma({
+      async $queryRaw() {
+        return [];
+      },
+    });
+
+    await expect(
+      createTicket(prisma as never, {
+        publicToken: "phong-1",
+        customerName: "Nguyen Van An",
+        phone: "+84912345678",
+      }),
+    ).rejects.toThrow("Phòng 1 đã đủ 50 lượt trong ngày hôm nay.");
+    expect(prisma.createdTickets).toHaveLength(0);
+    expect(prisma.events).toHaveLength(0);
+  });
+
   it("retries transaction conflicts so concurrent queue positions can recover", async () => {
     let attempts = 0;
     const prisma = makePrisma();
@@ -168,6 +207,79 @@ describe("ticket creation", () => {
       }),
     ).resolves.toHaveProperty("ticket");
     expect(attempts).toBe(2);
+  });
+});
+
+describe("daily room queue number allocation", () => {
+  function makeAtomicCounter() {
+    const counters = new Map<string, number>();
+    const tx = {
+      async $queryRaw(query: { values: unknown[] }) {
+        const [roomId, businessDate, maximum] = query.values as [string, string, number];
+        const key = `${roomId}:${businessDate}`;
+        const current = counters.get(key) ?? 0;
+
+        if (current >= maximum) {
+          return [];
+        }
+
+        const next = current + 1;
+        counters.set(key, next);
+        return [{ lastNumber: next }];
+      },
+    };
+
+    return { counters, tx };
+  }
+
+  it("allocates independently for each room and business date", async () => {
+    const { tx } = makeAtomicCounter();
+
+    await expect(allocateDailyRoomQueueNumber(tx as never, "room-1", "Phòng 1", "2026-08-29")).resolves.toBe(1);
+    await expect(allocateDailyRoomQueueNumber(tx as never, "room-1", "Phòng 1", "2026-08-29")).resolves.toBe(2);
+    await expect(allocateDailyRoomQueueNumber(tx as never, "room-2", "Phòng 2", "2026-08-29")).resolves.toBe(1);
+    await expect(allocateDailyRoomQueueNumber(tx as never, "room-3", "Phòng 3", "2026-08-29")).resolves.toBe(1);
+    await expect(allocateDailyRoomQueueNumber(tx as never, "room-1", "Phòng 1", "2026-08-30")).resolves.toBe(1);
+  });
+
+  it("never reuses an issued number when a ticket is cancelled or deleted", async () => {
+    const { tx } = makeAtomicCounter();
+
+    for (let expected = 1; expected <= 10; expected += 1) {
+      await expect(
+        allocateDailyRoomQueueNumber(tx as never, "room-1", "Phòng 1", "2026-08-29"),
+      ).resolves.toBe(expected);
+    }
+
+    // Cancelling or hard-deleting a QueueTicket does not modify this counter.
+    await expect(allocateDailyRoomQueueNumber(tx as never, "room-1", "Phòng 1", "2026-08-29")).resolves.toBe(11);
+  });
+
+  it("caps one room at 50 without affecting another room", async () => {
+    const { tx } = makeAtomicCounter();
+
+    for (let expected = 1; expected <= 50; expected += 1) {
+      await expect(
+        allocateDailyRoomQueueNumber(tx as never, "room-1", "Phòng 1", "2026-08-29"),
+      ).resolves.toBe(expected);
+    }
+
+    await expect(
+      allocateDailyRoomQueueNumber(tx as never, "room-1", "Phòng 1", "2026-08-29"),
+    ).rejects.toThrow("Phòng 1 đã đủ 50 lượt trong ngày hôm nay.");
+    await expect(allocateDailyRoomQueueNumber(tx as never, "room-2", "Phòng 2", "2026-08-29")).resolves.toBe(1);
+  });
+
+  it("returns unique numbers for concurrent allocations in the same room", async () => {
+    const { tx } = makeAtomicCounter();
+    const allocated = await Promise.all(
+      Array.from({ length: 12 }, () => (
+        allocateDailyRoomQueueNumber(tx as never, "room-1", "Phòng 1", "2026-08-29")
+      )),
+    );
+
+    expect(allocated).toEqual(Array.from({ length: 12 }, (_, index) => index + 1));
+    expect(new Set(allocated).size).toBe(12);
   });
 });
 

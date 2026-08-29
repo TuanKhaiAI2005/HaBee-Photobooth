@@ -5,10 +5,13 @@ import {
   startNotificationSound,
   type NotificationSoundHandle,
 } from "@/lib/browser/notification-sound";
+import { QueueNumber } from "@/app/components/queue-number";
+import { RoomLabel, roomLabelText } from "@/app/components/room-label";
 
 type CalledTicket = {
   id: string;
   ticketCode: string;
+  queueNumber?: number | null;
   customerName?: string;
   normalizedPhone?: string;
   roomId: string;
@@ -34,8 +37,8 @@ function showBrowserNotification(ticket: CalledTicket, mode: "admin" | "customer
 
   const title = mode === "admin" ? "Vé vừa được gọi" : "Đã tới lượt của bạn";
   const body = mode === "admin"
-    ? `${ticket.ticketCode} - ${ticket.roomName}`
-    : `Vé ${ticket.ticketCode} được gọi vào ${ticket.roomName}.`;
+    ? `STT ${ticket.queueNumber ?? "—"} - ${ticket.ticketCode} - ${roomLabelText(ticket.roomName)}`
+    : `STT ${ticket.queueNumber ?? "—"}, vé ${ticket.ticketCode} được gọi vào ${roomLabelText(ticket.roomName)}.`;
 
   new Notification(title, {
     body,
@@ -100,8 +103,14 @@ export function CalledNotification({ ticket, mode }: CalledNotificationProps) {
       {visibleTicket ? (
         <div className="fixed inset-x-4 bottom-4 z-50 mx-auto max-w-md rounded-lg border-2 border-[var(--color-navy)] bg-[var(--color-surface)] p-4 text-[var(--color-navy)] shadow-[5px_5px_0_var(--color-navy)]" role="status">
           <p className="text-xs font-black uppercase text-[var(--color-muted-text)]">{mode === "admin" ? "Vé vừa được gọi" : "Đã tới lượt của bạn"}</p>
-          <h2 className="mt-1 text-2xl font-black">{visibleTicket.ticketCode}</h2>
-          <p className="mt-2 text-sm">Phòng: <strong>{visibleTicket.roomName}</strong></p>
+          <div className="mt-2 flex flex-wrap items-center gap-3">
+            <QueueNumber className="text-base" queueNumber={visibleTicket.queueNumber} />
+            <h2 className="text-2xl font-black">{visibleTicket.ticketCode}</h2>
+          </div>
+          <p className="mt-3 flex flex-wrap items-center gap-2 text-sm">
+            <span>Phòng:</span>
+            <strong><RoomLabel room={visibleTicket.roomName} /></strong>
+          </p>
           {mode === "admin" ? (
             <p className="text-sm">{visibleTicket.customerName} - {visibleTicket.normalizedPhone}</p>
           ) : (

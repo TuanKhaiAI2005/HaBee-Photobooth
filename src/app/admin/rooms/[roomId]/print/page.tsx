@@ -2,6 +2,7 @@
 import { prisma } from "@/lib/prisma";
 import { requireAdmin } from "@/lib/auth/guards";
 import { createQrPngDataUrl, getRoomPublicUrl } from "@/lib/public/qr";
+import { RoomLabel } from "@/app/components/room-label";
 
 export const dynamic = "force-dynamic";
 
@@ -23,7 +24,9 @@ export default async function PrintQrPage({ params }: PrintQrPageProps) {
 
   return (
     <main className="mx-auto flex min-h-screen max-w-3xl flex-col items-center justify-center gap-6 px-8 py-10 text-center print:min-h-0">
-      <h1 className="text-4xl font-bold text-[var(--color-navy)]">{room.name}</h1>
+      <h1 className="text-4xl font-bold text-[var(--color-navy)]">
+        <RoomLabel iconClassName="h-8 w-8" room={room} />
+      </h1>
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img alt={`QR ${room.name}`} className="h-96 w-96 bg-[var(--color-surface)] p-4" src={qrPng} />
       <p className="text-2xl font-semibold">Quét QR để đăng ký hàng đợi</p>

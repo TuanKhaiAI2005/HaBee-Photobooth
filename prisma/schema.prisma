@@ -47,16 +47,17 @@ model Account {
 }
 
 model Room {
-  id                     String        @id @default(uuid()) @db.Uuid
+  id                     String               @id @default(uuid()) @db.Uuid
   name                   String
-  publicToken            String        @unique
+  publicToken            String               @unique
   color                  String
   defaultDurationMinutes Int
-  status                 RoomStatus    @default(ACTIVE)
-  sortOrder              Int           @default(0)
-  createdAt              DateTime      @default(now())
-  updatedAt              DateTime      @updatedAt
+  status                 RoomStatus           @default(ACTIVE)
+  sortOrder              Int                  @default(0)
+  createdAt              DateTime             @default(now())
+  updatedAt              DateTime             @updatedAt
   queueEvents            QueueEvent[]
+  queueNumberCounters    QueueNumberCounter[]
   queueTickets           QueueTicket[]
 
   @@index([status])
@@ -73,6 +74,8 @@ model QueueTicket {
   customerAccessTokenHash String            @unique
   status                  QueueTicketStatus @default(WAITING)
   queuePosition           Int
+  queueNumber             Int?
+  businessDate            DateTime?         @db.Date
   registeredAt            DateTime          @default(now())
   calledAt                DateTime?
   arrivalConfirmedAt      DateTime?
@@ -85,13 +88,28 @@ model QueueTicket {
   room                    Room              @relation(fields: [roomId], references: [id], onDelete: Restrict)
   queueEvents             QueueEvent[]
 
+  @@unique([roomId, queuePosition])
+  @@unique([roomId, businessDate, queueNumber])
   @@index([roomId])
   @@index([status])
   @@index([queuePosition])
+  @@index([businessDate])
   @@index([normalizedPhone])
   @@index([createdAt])
   @@index([roomId, status, queuePosition])
-  @@unique([roomId, queuePosition])
+  @@index([roomId, businessDate])
+}
+
+model QueueNumberCounter {
+  roomId       String   @db.Uuid
+  businessDate DateTime @db.Date
+  lastNumber   Int
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  room         Room     @relation(fields: [roomId], references: [id], onDelete: Cascade)
+
+  @@id([roomId, businessDate])
+  @@index([businessDate])
 }
 
 model QueueEvent {

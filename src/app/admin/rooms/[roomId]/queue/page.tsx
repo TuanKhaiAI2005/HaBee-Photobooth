@@ -8,6 +8,8 @@ import { QueueRealtimeRefetch } from "@/app/components/queue-realtime-refetch";
 import { QueueTimer } from "@/app/components/queue-timer";
 import { CalledNotification } from "@/app/components/called-notification";
 import { AutoCallWatcher } from "@/app/components/auto-call-watcher";
+import { QueueNumber } from "@/app/components/queue-number";
+import { RoomLabel } from "@/app/components/room-label";
 import { getAdminRoomQueue, type AdminQueueTicket } from "@/lib/queue/read-models";
 import { roomStatusLabel, ticketStatusLabel } from "@/lib/labels";
 import { formatVietnamDateTime } from "@/lib/timezone";
@@ -29,7 +31,10 @@ type AdminQueuePageProps = {
 function TicketIdentity({ ticket, masked = false }: { ticket: AdminQueueTicket; masked?: boolean }) {
   return (
     <div>
-      <p className="font-semibold text-[var(--color-navy)]">{ticket.ticketCode}</p>
+      <div className="flex flex-wrap items-center gap-3">
+        <QueueNumber queueNumber={ticket.queueNumber} />
+        <p className="font-semibold text-[var(--color-navy)]">{ticket.ticketCode}</p>
+      </div>
       <p className="text-sm text-[var(--color-muted-text)]">
         {masked ? "Thông tin đã che" : `${ticket.customerName} - ${ticket.normalizedPhone}`}
       </p>
@@ -75,7 +80,9 @@ export default async function AdminRoomQueuePage({ params }: AdminQueuePageProps
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
             <p className="photo-badge">Vận hành hàng đợi</p>
-            <h1 className="mt-3 text-4xl font-black text-[var(--color-navy)]">{view.room.name}</h1>
+            <h1 className="mt-3 text-4xl font-black text-[var(--color-navy)]">
+              <RoomLabel iconClassName="h-8 w-8" room={view.room} />
+            </h1>
             <p className="mt-2 text-sm text-[var(--color-muted-text)]">
               Trạng thái {roomStatusLabel(view.room.status)} - {view.room.defaultDurationMinutes} phút/lượt
             </p>

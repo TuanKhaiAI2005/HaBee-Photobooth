@@ -8,6 +8,8 @@ import { accessTokenSchema } from "@/lib/public/ticket-schemas";
 import { QueueTimer } from "@/app/components/queue-timer";
 import { QueueRealtimeRefetch } from "@/app/components/queue-realtime-refetch";
 import { CalledNotification } from "@/app/components/called-notification";
+import { QueueNumber } from "@/app/components/queue-number";
+import { RoomLabel } from "@/app/components/room-label";
 import { ticketStatusLabel } from "@/lib/labels";
 import { BrandMark } from "@/app/components/brand-mark";
 
@@ -44,6 +46,7 @@ export default async function TicketPage({ params }: TicketPageProps) {
         ticket={ticket.status === "CALLED" && ticket.calledAt ? {
           id: ticket.id,
           ticketCode: ticket.ticketCode,
+          queueNumber: ticket.queueNumber,
           roomId: ticket.roomId,
           roomName: ticket.roomName,
           calledAt: ticket.calledAt,
@@ -53,11 +56,14 @@ export default async function TicketPage({ params }: TicketPageProps) {
         <BrandMark compact />
         <p className="photo-badge mt-4">Vé hàng đợi của bạn</p>
         <h1 className="mt-4 break-words text-4xl font-black text-[var(--color-navy)]">{ticket.ticketCode}</h1>
+        <QueueNumber className="mt-4 px-4 py-2 text-xl" queueNumber={ticket.queueNumber} />
         <p className="mt-2 text-[var(--color-muted-text)]">Giữ trang này để theo dõi lượt của bạn.</p>
         <dl className="mt-6 grid gap-3 text-sm text-[var(--color-navy)] sm:grid-cols-2">
           <div className="photo-stat">
             <dt className="text-xs font-bold uppercase text-[var(--color-muted-text)]">Phòng</dt>
-            <dd className="mt-1 text-xl font-black">{ticket.roomName}</dd>
+            <dd className="mt-1 text-xl font-black">
+              <RoomLabel iconClassName="h-5 w-5" room={ticket.roomName} />
+            </dd>
           </div>
           <div className="photo-stat bg-[var(--color-cream)]">
             <dt className="text-xs font-bold uppercase text-[var(--color-muted-text)]">Trạng thái</dt>

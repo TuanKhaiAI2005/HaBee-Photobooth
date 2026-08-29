@@ -26,6 +26,7 @@ export type HistoryTicket = {
   customerName: string;
   normalizedPhone: string;
   ticketCode: string;
+  queueNumber: number | null;
   registeredAt: Date;
   calledAt: Date | null;
   serviceStartedAt: Date | null;
@@ -89,6 +90,7 @@ export async function listHistory(prisma: PrismaClient, rawFilters: unknown) {
       customerName: ticket.customerName,
       normalizedPhone: ticket.normalizedPhone,
       ticketCode: ticket.ticketCode,
+      queueNumber: ticket.queueNumber,
       registeredAt: ticket.registeredAt,
       calledAt: ticket.calledAt,
       serviceStartedAt: ticket.serviceStartedAt,
@@ -113,6 +115,7 @@ export async function getRoomTodayHistory(prisma: PrismaClient, roomId: string) 
       id: true,
       customerName: true,
       ticketCode: true,
+      queueNumber: true,
       serviceStartedAt: true,
       checkoutAt: true,
       cancelledAt: true,

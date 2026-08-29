@@ -9,6 +9,7 @@ import { QueueConnectionIndicator } from "@/app/components/connection-indicator"
 import { AutoCallWatcher } from "@/app/components/auto-call-watcher";
 import { BrandMark } from "@/app/components/brand-mark";
 import { FullscreenButton } from "@/app/components/fullscreen-button";
+import { RoomLabel } from "@/app/components/room-label";
 
 export default async function StaffPage() {
   const account = await requireStaffOrAdmin();
@@ -35,7 +36,9 @@ export default async function StaffPage() {
           {queue.rooms.map((room) => (
             <Link className="grid min-h-56 gap-4 rounded-lg border-2 border-[var(--color-navy)] bg-[var(--color-surface)] p-4 shadow-[3px_3px_0_var(--color-navy)]" href={`/staff/rooms/${room.id}`} key={room.id}>
               <span>
-                <span className="block text-2xl font-black">{room.name}</span>
+                <span className="block text-2xl font-black">
+                  <RoomLabel iconClassName="h-5 w-5" room={room} />
+                </span>
                 <span className="photo-badge mt-2">{roomStatusLabel(room.status)}</span>
               </span>
               <span className="grid grid-cols-2 gap-3 text-sm">

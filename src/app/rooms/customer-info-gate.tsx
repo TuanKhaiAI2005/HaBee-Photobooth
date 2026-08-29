@@ -117,7 +117,7 @@ export function CustomerInfoGate({ children }: CustomerInfoGateProps) {
             className="photo-input"
             name="customerName"
             required
-            value={form.customerName}
+            value={form.customerName} 
             onBlur={() => setTouched((current) => ({ ...current, customerName: true }))}
             onChange={(event) => setForm((current) => ({ ...current, customerName: event.target.value }))}
           />

@@ -5,6 +5,23 @@ import { canRegisterRoomStatus, isPublicRoomStatus } from "@/lib/public/room-acc
 import { activeTicketStatuses, estimateWaitingMinutes } from "@/lib/public/waiting-time";
 import { generateTicketCode } from "@/lib/public/ticket-code";
 import type { CreateTicketInput } from "@/lib/public/ticket-schemas";
+import { vietnamBusinessDate, vietnamBusinessDateKey } from "@/lib/timezone";
+
+export const MAX_DAILY_ROOM_QUEUE_NUMBER = 50;
+const transactionMaxWaitMs = 10_000;
+const transactionTimeoutMs = 20_000;
+
+function isRetryableTicketCreationError(error: unknown): boolean {
+  if (!(error instanceof Prisma.PrismaClientKnownRequestError)) {
+    return false;
+  }
+
+  if (error.code === "P2002" || error.code === "P2034") {
+    return true;
+  }
+
+  return error.code === "P2028" && error.message.includes("Transaction already closed");
+}
 
 export type PublicQueueItem = {
   ticketCode: string;
@@ -12,6 +29,7 @@ export type PublicQueueItem = {
   maskedPhone: string;
   status: QueueTicket["status"];
   queuePosition: number;
+  queueNumber: number | null;
 };
 
 export type PublicRoomSummary = {
@@ -31,6 +49,7 @@ export type PublicTicketView = {
   roomId: string;
   roomName: string;
   roomPublicToken: string;
+  queueNumber: number | null;
   status: QueueTicket["status"];
   calledAt: Date | null;
   arrivalConfirmedAt: Date | null;
@@ -42,11 +61,11 @@ export type PublicTicketView = {
 };
 
 type PublicRoomWithTickets = Room & {
-  queueTickets: Pick<QueueTicket, "status" | "queuePosition" | "ticketCode" | "customerName" | "normalizedPhone">[];
+  queueTickets: Pick<QueueTicket, "status" | "queuePosition" | "queueNumber" | "ticketCode" | "customerName" | "normalizedPhone">[];
 };
 
 export function mapPublicQueueItem(
-  ticket: Pick<QueueTicket, "ticketCode" | "customerName" | "normalizedPhone" | "status" | "queuePosition">,
+  ticket: Pick<QueueTicket, "ticketCode" | "customerName" | "normalizedPhone" | "status" | "queuePosition" | "queueNumber">,
 ): PublicQueueItem {
   return {
     ticketCode: ticket.ticketCode,
@@ -54,6 +73,7 @@ export function mapPublicQueueItem(
     maskedPhone: maskPhone(ticket.normalizedPhone),
     status: ticket.status,
     queuePosition: ticket.queuePosition,
+    queueNumber: ticket.queueNumber,
   };
 }
 
@@ -85,6 +105,7 @@ export async function listPublicRooms(prisma: Prisma.TransactionClient): Promise
           normalizedPhone: true,
           status: true,
           queuePosition: true,
+          queueNumber: true,
         },
       },
     },
@@ -106,6 +127,7 @@ export async function getPublicRoomDetail(prisma: Prisma.TransactionClient, publ
           normalizedPhone: true,
           status: true,
           queuePosition: true,
+          queueNumber: true,
         },
       },
     },
@@ -124,42 +146,89 @@ export async function getPublicRoomDetail(prisma: Prisma.TransactionClient, publ
 
 type TransactionHost = PrismaClient | Prisma.TransactionClient;
 
-export async function createTicket(prisma: PrismaClient, input: CreateTicketInput) {
+type QueueNumberTransaction = Pick<Prisma.TransactionClient, "$queryRaw">;
+
+export async function allocateDailyRoomQueueNumber(
+  tx: QueueNumberTransaction,
+  roomId: string,
+  roomName: string,
+  businessDateKey: string,
+): Promise<number> {
+  const counters = await tx.$queryRaw<Array<{ lastNumber: number }>>(Prisma.sql`
+    INSERT INTO "QueueNumberCounter" (
+      "roomId",
+      "businessDate",
+      "lastNumber",
+      "createdAt",
+      "updatedAt"
+    )
+    VALUES (
+      ${roomId}::uuid,
+      ${businessDateKey}::date,
+      1,
+      CURRENT_TIMESTAMP,
+      CURRENT_TIMESTAMP
+    )
+    ON CONFLICT ("roomId", "businessDate")
+    DO UPDATE SET
+      "lastNumber" = "QueueNumberCounter"."lastNumber" + 1,
+      "updatedAt" = CURRENT_TIMESTAMP
+    WHERE "QueueNumberCounter"."lastNumber" < ${MAX_DAILY_ROOM_QUEUE_NUMBER}
+    RETURNING "lastNumber"
+  `);
+  const queueNumber = counters[0]?.lastNumber;
+
+  if (!queueNumber) {
+    throw new Error(`${roomName} đã đủ ${MAX_DAILY_ROOM_QUEUE_NUMBER} lượt trong ngày hôm nay.`);
+  }
+
+  return queueNumber;
+}
+
+export async function createTicket(prisma: PrismaClient, input: CreateTicketInput, now = new Date()) {
   const accessToken = generateAccessToken();
   const accessTokenHash = hashAccessToken(accessToken);
+  const businessDate = vietnamBusinessDate(now);
+  const businessDateKey = vietnamBusinessDateKey(now);
 
   for (let transactionAttempt = 0; transactionAttempt < 5; transactionAttempt += 1) {
     try {
       const ticket = await prisma.$transaction(
         async (tx) => {
-      const room = await tx.room.findUnique({ where: { publicToken: input.publicToken } });
+          const room = await tx.room.findUnique({ where: { publicToken: input.publicToken } });
 
-      if (!room || !isPublicRoomStatus(room.status)) {
-        throw new Error("Phòng không tồn tại.");
-      }
+          if (!room || !isPublicRoomStatus(room.status)) {
+            throw new Error("Phòng không tồn tại.");
+          }
 
-      if (!canRegisterRoomStatus(room.status)) {
-        throw new Error("Phòng đang tạm dừng, không thể đăng ký.");
-      }
+          if (!canRegisterRoomStatus(room.status)) {
+            throw new Error("Phòng đang tạm dừng, không thể đăng ký.");
+          }
 
-      const activeTicket = await tx.queueTicket.findFirst({
-        where: {
-          normalizedPhone: input.phone,
-          status: { in: activeTicketStatuses },
-        },
-        select: { id: true },
-      });
+          const activeTicket = await tx.queueTicket.findFirst({
+            where: {
+              normalizedPhone: input.phone,
+              status: { in: activeTicketStatuses },
+            },
+            select: { id: true },
+          });
 
-      if (activeTicket) {
-        throw new Error("Số điện thoại này đang có vé active.");
-      }
+          if (activeTicket) {
+            throw new Error("Số điện thoại này đang có vé active.");
+          }
 
-      const lastTicket = await tx.queueTicket.findFirst({
-        where: { roomId: room.id },
-        orderBy: { queuePosition: "desc" },
-        select: { queuePosition: true },
-      });
-      const queuePosition = (lastTicket?.queuePosition ?? 0) + 1;
+          const queueNumber = await allocateDailyRoomQueueNumber(
+            tx,
+            room.id,
+            room.name,
+            businessDateKey,
+          );
+          const lastTicket = await tx.queueTicket.findFirst({
+            where: { roomId: room.id },
+            orderBy: { queuePosition: "desc" },
+            select: { queuePosition: true },
+          });
+          const queuePosition = (lastTicket?.queuePosition ?? 0) + 1;
 
           const createdTicket = await tx.queueTicket.create({
             data: {
@@ -170,6 +239,9 @@ export async function createTicket(prisma: PrismaClient, input: CreateTicketInpu
               customerAccessTokenHash: accessTokenHash,
               status: "WAITING",
               queuePosition,
+              queueNumber,
+              businessDate,
+              registeredAt: now,
             },
           });
 
@@ -185,16 +257,14 @@ export async function createTicket(prisma: PrismaClient, input: CreateTicketInpu
         },
         {
           isolationLevel: Prisma.TransactionIsolationLevel.Serializable,
+          maxWait: transactionMaxWaitMs,
+          timeout: transactionTimeoutMs,
         },
       );
 
       return { accessToken, ticket };
     } catch (error) {
-      if (
-        error instanceof Prisma.PrismaClientKnownRequestError &&
-        (error.code === "P2002" || error.code === "P2034") &&
-        transactionAttempt < 4
-      ) {
+      if (isRetryableTicketCreationError(error) && transactionAttempt < 4) {
         continue;
       }
 
@@ -230,6 +300,7 @@ export async function getTicketByAccessToken(prisma: TransactionHost, accessToke
     roomId: ticket.roomId,
     roomName: ticket.room.name,
     roomPublicToken: ticket.room.publicToken,
+    queueNumber: ticket.queueNumber,
     status: ticket.status,
     calledAt: ticket.calledAt,
     arrivalConfirmedAt: ticket.arrivalConfirmedAt,
