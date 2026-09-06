@@ -8,7 +8,7 @@ describe("room labels", () => {
     ["  PHÒNG 2  ", "path", "♥   PHÒNG 2  "],
     ["phòng-3", "rect", "■ phòng-3"],
     ["Room 1 ( Nova )", "circle", "● Room 1 ( Nova )"],
-    ["Room 2 ( First Date )", "path", "♥ Room 2 ( First Date )"],
+    ["Room 2 ( Jolly )", "path", "♥ Room 2 ( Jolly )"],
     ["Room 3 ( Sepia )", "rect", "■ Room 3 ( Sepia )"],
   ])("maps %s to its configured icon", (room, element, textLabel) => {
     expect(renderToStaticMarkup(<RoomIcon room={room} />)).toContain(`<${element}`);

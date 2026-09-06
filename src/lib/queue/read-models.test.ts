@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { getAdminRoomQueue, mapStaffTicket, type AdminQueueTicket } from "@/lib/queue/read-models";
+import { getAdminRoomQueue, listStaffRooms, mapStaffTicket, type AdminQueueTicket } from "@/lib/queue/read-models";
 
 function makeTicket(): AdminQueueTicket {
   return {
@@ -52,5 +52,62 @@ describe("admin and staff queue query", () => {
         }),
       }),
     );
+  });
+
+  it("selects and exposes only the in-service queue number for the staff room list", async () => {
+    const findMany = vi.fn().mockResolvedValue([
+      {
+        id: "room-1",
+        name: "Room 1",
+        color: "#ffffff",
+        status: "ACTIVE",
+        defaultDurationMinutes: 15,
+        queueTickets: [
+          { id: "ticket-called", status: "CALLED", queueNumber: 13, expectedEndAt: null },
+          { id: "ticket-current", status: "IN_SERVICE", queueNumber: 12, expectedEndAt: null },
+        ],
+      },
+      {
+        id: "room-2",
+        name: "Room 2",
+        color: "#ffffff",
+        status: "ACTIVE",
+        defaultDurationMinutes: 15,
+        queueTickets: [{ id: "ticket-called", status: "CALLED", queueNumber: 7, expectedEndAt: null }],
+      },
+      {
+        id: "room-3",
+        name: "Room 3",
+        color: "#ffffff",
+        status: "ACTIVE",
+        defaultDurationMinutes: 15,
+        queueTickets: [],
+      },
+      {
+        id: "room-4",
+        name: "Room 4",
+        color: "#ffffff",
+        status: "ACTIVE",
+        defaultDurationMinutes: 15,
+        queueTickets: [
+          { id: "legacy-current", status: "IN_SERVICE", queueNumber: null, expectedEndAt: null },
+          { id: "ticket-called", status: "CALLED", queueNumber: 9, expectedEndAt: null },
+        ],
+      },
+    ]);
+
+    const result = await listStaffRooms({ room: { findMany } } as never);
+
+    expect(findMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        select: expect.objectContaining({
+          queueTickets: expect.objectContaining({
+            select: expect.objectContaining({ queueNumber: true }),
+          }),
+        }),
+      }),
+    );
+    expect(result.rooms.map((room) => room.currentQueueNumber)).toEqual([12, null, null, null]);
+    expect(result.rooms.map((room) => room.hasCalled)).toEqual([true, true, false, true]);
   });
 });

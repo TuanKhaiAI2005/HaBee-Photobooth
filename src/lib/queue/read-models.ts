@@ -149,6 +149,7 @@ export async function listStaffRooms(prisma: Prisma.TransactionClient) {
         select: {
           id: true,
           status: true,
+          queueNumber: true,
           expectedEndAt: true,
         },
       },
@@ -162,6 +163,7 @@ export async function listStaffRooms(prisma: Prisma.TransactionClient) {
     rooms: rooms.map((room) => {
       const waitingCount = room.queueTickets.filter((ticket) => ticket.status === "WAITING").length;
       const inService = room.queueTickets.find((ticket) => ticket.status === "IN_SERVICE") ?? null;
+      const called = room.queueTickets.find((ticket) => ticket.status === "CALLED") ?? null;
       const remainingServiceMinutes = getRemainingServiceMinutes(inService?.expectedEndAt, serverNow);
 
       return {
@@ -172,7 +174,8 @@ export async function listStaffRooms(prisma: Prisma.TransactionClient) {
         defaultDurationMinutes: room.defaultDurationMinutes,
         waitingCount,
         estimatedWaitingMinutes: remainingServiceMinutes + estimateWaitingMinutes(waitingCount, room.defaultDurationMinutes),
-        hasCalled: room.queueTickets.some((ticket) => ticket.status === "CALLED"),
+        hasCalled: called !== null,
+        currentQueueNumber: inService?.queueNumber ?? null,
         inService,
       };
     }),
